@@ -35,6 +35,14 @@
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
+
+            <!-- Gestión de Estudiantes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('estudiantes.index') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -68,21 +76,21 @@
                     @method('PUT')
 
                     <div class="row">
-                        <!-- Nombre (readonly) -->
+                        <!-- Nombre -->
                         <div class="col-md-6 mb-3">
                             <label for="cNombre" class="form-label">Nombre</label>
                             <input type="text" name="cNombre" id="cNombre" 
                                    class="form-control" value="{{ $usuario->persona->cNombre }}" readonly>
                         </div>
 
-                        <!-- Apellido (readonly) -->
+                        <!-- Apellido -->
                         <div class="col-md-6 mb-3">
                             <label for="cApellido" class="form-label">Apellido</label>
                             <input type="text" name="cApellido" id="cApellido" 
                                    class="form-control" value="{{ $usuario->persona->cApellido }}" readonly>
                         </div>
 
-                        <!-- DNI (readonly) -->
+                        <!-- DNI -->
                         <div class="col-md-6 mb-3">
                             <label for="cDNI" class="form-label">DNI</label>
                             <input type="text" name="cDNI" id="cDNI" 

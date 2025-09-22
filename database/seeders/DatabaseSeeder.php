@@ -13,13 +13,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ================================
-        // 1️⃣ Crear Roles
+        // Crear Roles
         // ================================
         $rolAdmin = Rol::create(['cNombreRol' => 'Administrador']);
         $rolUser  = Rol::create(['cNombreRol' => 'Usuario']);
 
         // ================================
-        // 2️⃣ Crear Persona admin
+        // Crear Persona admin
         // ================================
         $persona = Persona::create([
             'cNombre'   => 'Administrador',
@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ================================
-        // 3️⃣ Crear Usuario admin con contraseña Bcrypt
+        // Crear Usuario admin con contraseña Bcrypt
         // ================================
         $usuario = Usuario::create([
             'IdPersona'    => $persona->IdPersona,
@@ -38,13 +38,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ================================
-        // 4️⃣ Asignar rol Administrador al usuario
+        // Asignar rol Administrador al usuario
         // ================================
         $usuario->roles()->attach($rolAdmin->IdRol);
 
-        // ================================
-        // ✅ Listo: usuario admin con rol creado
-        // ================================
     }
 }
 

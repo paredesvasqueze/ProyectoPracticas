@@ -13,6 +13,7 @@ class CartaPresentacion extends Model
     protected $primaryKey = 'IdCartaPresentacion';
     public $timestamps = false;
 
+    // Campos que se pueden llenar masivamente
     protected $fillable = [
         'IdEstudiante',
         'nNroExpediente',
@@ -28,7 +29,7 @@ class CartaPresentacion extends Model
         'adjunto'
     ];
 
-    // ✅ Casts para manejar tipos correctamente
+    // Casts para tipos correctos
     protected $casts = [
         'dFechaCarta' => 'date',
         'dFechaRecojo' => 'date',
@@ -36,16 +37,18 @@ class CartaPresentacion extends Model
         'bPresentoSupervision' => 'boolean',
     ];
 
-    // ✅ Relación con Estudiante
+    // Relación con Estudiante
     public function estudiante()
     {
         return $this->belongsTo(Estudiante::class, 'IdEstudiante', 'IdEstudiante');
     }
 
-    // ✅ Relación con Empresa
+    // Relación con Empresa
     public function empresa()
     {
         return $this->belongsTo(Empresa::class, 'IdEmpresa', 'IdEmpresa');
     }
 }
+
+
 

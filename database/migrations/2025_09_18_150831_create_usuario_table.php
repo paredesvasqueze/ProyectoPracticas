@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('usuario', function (Blueprint $table) {
-            $table->id('idusuario'); // PK
-            $table->unsignedBigInteger('idpersona'); // FK a persona
+            $table->id('idusuario'); 
+            $table->unsignedBigInteger('idpersona'); 
             $table->string('cusuario', 50)->unique();
             $table->string('ccontrasenia', 100);
             $table->timestamps();

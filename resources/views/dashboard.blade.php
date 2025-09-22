@@ -12,6 +12,7 @@
         </div>
 
         <ul class="nav flex-column mb-4">
+            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
@@ -19,7 +20,7 @@
                 </a>
             </li>
 
-            <!-- 🔹 Módulo de trámites -->
+            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
@@ -27,11 +28,19 @@
                 </a>
             </li>
 
-            <!-- 🔹 Módulo de empresas -->
+            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
-                    <i class="bi bi-building me-2"></i> Gestión de Empresas
+                    <i class="bi bi-building me-2"></i> Gestionar Empresas
+                </a>
+            </li>
+
+            <!-- Módulo de estudiantes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('estudiantes.index') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
         </ul>
@@ -43,7 +52,7 @@
         <div class="d-flex justify-content-end mb-3">
             <div class="text-end">
                 <small>
-                    Usuario: {{ Auth::user()->cNombre }} {{ Auth::user()->cApellido }}
+                    Usuario: {{ Auth::user()->persona->cNombre ?? '' }} {{ Auth::user()->persona->cApellido ?? '' }}
                 </small>
                 <div class="mt-2">
                     <form action="{{ route('logout') }}" method="POST">
@@ -59,15 +68,15 @@
         <h2>Dashboard</h2>
         <p>
             Bienvenido, 
-            <strong>{{ Auth::user()->cNombre }} {{ Auth::user()->cApellido }}</strong>
+            <strong>{{ Auth::user()->persona->cNombre ?? '' }} {{ Auth::user()->persona->cApellido ?? '' }}</strong>
         </p>
 
         <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">Panel de Control</h5>
                 <p class="card-text">
-                    Aquí podrás gestionar a los usuarios, registrar los trámites de cartas de presentación 
-                    y administrar las empresas vinculadas.
+                    Aquí podrás gestionar a los usuarios, registrar los trámites de cartas de presentación, 
+                    administrar las empresas vinculadas y registrar estudiantes.
                 </p>
             </div>
         </div>
@@ -77,6 +86,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 

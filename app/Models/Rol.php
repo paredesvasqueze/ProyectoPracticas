@@ -13,16 +13,16 @@ class Rol extends Model
 
     protected $fillable = ['cNombreRol'];
 
-    // 🔹 Relación muchos a muchos con Usuarios
+    // Relación muchos a muchos con Usuarios
     public function usuarios()
     {
         return $this->belongsToMany(
             Usuario::class,
-            'ROL_USUARIO', // tabla pivote
-            'IdRol',       // FK de Rol en pivote
-            'IdUsuario',   // FK de Usuario en pivote
-            'IdRol',       // PK local (Rol)
-            'IdUsuario'    // PK relacionado (Usuario)
+            'ROL_USUARIO', 
+            'IdRol',       
+            'IdUsuario',   
+            'IdRol',       
+            'IdUsuario'    
         );
     }
 }

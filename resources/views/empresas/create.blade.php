@@ -35,6 +35,14 @@
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
+
+            <!-- Gestión de Estudiantes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('estudiantes.index') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
+                </a>
+            </li>
         </ul>
     </div>
 

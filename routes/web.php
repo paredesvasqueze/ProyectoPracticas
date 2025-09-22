@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CartaPresentacionController;
-use App\Http\Controllers\EmpresaController; // 🔹 Nuevo controlador
+use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\EstudianteController; // 🔹 Nuevo controlador
 
 // ===============================
 // 🌐 Rutas públicas
@@ -38,9 +39,13 @@ Route::middleware(['auth'])->group(function () {
     // Cartas de presentación (trámites)
     Route::resource('cartas', CartaPresentacionController::class);
 
-    // 🔹 Empresas
+    // Empresas
     Route::resource('empresas', EmpresaController::class);
+
+    // 🔹 Estudiantes
+    Route::resource('estudiantes', EstudianteController::class);
 });
+
 
 
 

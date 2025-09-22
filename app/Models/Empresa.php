@@ -12,10 +12,10 @@ class Empresa extends Model
 
     protected $fillable = [
         'cNombreEmpresa',
-        'cRUC',
+        'nRUC',
         'cDireccion',
-        'cTelefono',
-        'cCorreo'
+        'cCorreo',
+        'nTelefono'
     ];
 
     // Relación con cartas de presentación
@@ -24,3 +24,4 @@ class Empresa extends Model
         return $this->hasMany(CartaPresentacion::class, 'IdEmpresa');
     }
 }
+

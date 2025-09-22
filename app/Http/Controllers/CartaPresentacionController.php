@@ -10,14 +10,23 @@ use Illuminate\Support\Facades\Storage;
 
 class CartaPresentacionController extends Controller
 {
-    // 🔹 Listado de cartas
-    public function index()
+    // Listado de cartas con búsqueda por DNI
+    public function index(Request $request)
     {
-        $cartas = CartaPresentacion::with(['estudiante.persona', 'empresa'])->get();
+        $dni = $request->input('dni');
+
+        $cartas = CartaPresentacion::with(['estudiante.persona', 'empresa'])
+            ->when($dni, function($query, $dni) {
+                $query->whereHas('estudiante.persona', function($q) use ($dni) {
+                    $q->where('cDNI', 'like', "%$dni%");
+                });
+            })
+            ->get();
+
         return view('cartas.index', compact('cartas'));
     }
 
-    // 🔹 Formulario de registro
+    // Formulario de registro
     public function create()
     {
         $estudiantes = Estudiante::with('persona')->get();
@@ -25,20 +34,23 @@ class CartaPresentacionController extends Controller
         return view('cartas.create', compact('estudiantes', 'empresas'));
     }
 
-    // 🔹 Guardar trámite
+    // Guardar trámite
     public function store(Request $request)
     {
         $data = $this->validateRequest($request);
 
-        $carta = new CartaPresentacion($data);
+        // Normalizar booleano
+        $data['bPresentoSupervision'] = $request->bPresentoSupervision ? 1 : 0;
 
-        // Subir archivo
+        // Subir archivo adjunto si existe
         if ($request->hasFile('adjunto')) {
-            $carta->adjunto = $request->file('adjunto')->store('cartas', 'public');
+            $data['adjunto'] = $request->file('adjunto')->store('cartas', 'public');
         }
 
-        $carta->dFechaRegistro = now();
-        $carta->save();
+        // Asignar fecha de registro
+        $data['dFechaRegistro'] = now();
+
+        CartaPresentacion::create($data);
 
         return redirect()->route('cartas.index')->with('success', 'Trámite registrado correctamente.');
     }
@@ -56,17 +68,18 @@ class CartaPresentacionController extends Controller
     {
         $data = $this->validateRequest($request);
 
-        $carta->fill($data);
+        // Normalizar booleano
+        $data['bPresentoSupervision'] = $request->bPresentoSupervision ? 1 : 0;
 
-        // Reemplazar archivo si existe uno nuevo
+        // Reemplazar archivo adjunto si se sube uno nuevo
         if ($request->hasFile('adjunto')) {
             if ($carta->adjunto) {
                 Storage::disk('public')->delete($carta->adjunto);
             }
-            $carta->adjunto = $request->file('adjunto')->store('cartas', 'public');
+            $data['adjunto'] = $request->file('adjunto')->store('cartas', 'public');
         }
 
-        $carta->save();
+        $carta->update($data);
 
         return redirect()->route('cartas.index')->with('success', 'Trámite actualizado correctamente.');
     }
@@ -85,22 +98,23 @@ class CartaPresentacionController extends Controller
     // 🔹 Ver detalle
     public function show(CartaPresentacion $carta)
     {
+        $carta->load(['estudiante.persona', 'empresa']); // Cargar relaciones
         return view('cartas.show', compact('carta'));
     }
 
     // ============================================================
-    // 📌 Método privado para validar datos
+    // Método privado para validar datos
     // ============================================================
     private function validateRequest(Request $request): array
     {
         return $request->validate([
-            'IdEstudiante' => 'required|integer',
-            'IdEmpresa' => 'required|integer',
+            'IdEstudiante' => 'required|integer|exists:ESTUDIANTE,IdEstudiante',
+            'IdEmpresa' => 'required|integer|exists:EMPRESA,IdEmpresa',
             'nNroExpediente' => 'required|string|max:50',
             'nNroCarta' => 'required|string|max:50',
+            'nNroResibo' => 'nullable|string|max:50', 
             'dFechaCarta' => 'required|date',
             'dFechaRecojo' => 'nullable|date',
-            'nNroResibo' => 'nullable|string|max:50',
             'cObservacion' => 'nullable|string|max:255',
             'bPresentoSupervision' => 'nullable|boolean',
             'nEstado' => 'nullable|string|max:50',
@@ -108,5 +122,10 @@ class CartaPresentacionController extends Controller
         ]);
     }
 }
+
+
+
+
+
 
 

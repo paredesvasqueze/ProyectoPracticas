@@ -13,7 +13,7 @@ class Usuario extends Authenticatable
     protected $table = 'USUARIO';
     protected $primaryKey = 'IdUsuario';
 
-    // ❌ Desactivar timestamps para evitar errores de created_at / updated_at
+    // Desactivar timestamps para evitar errores de created_at / updated_at
     public $timestamps = false;
 
     // Columnas fillable
@@ -39,11 +39,11 @@ class Usuario extends Authenticatable
     {
         return $this->belongsToMany(
             Rol::class,
-            'ROL_USUARIO', // tabla pivote
-            'IdUsuario',   // FK del usuario en la tabla pivote
-            'IdRol',       // FK del rol en la tabla pivote
-            'IdUsuario',   // PK local
-            'IdRol'        // PK del modelo relacionado
+            'ROL_USUARIO', 
+            'IdUsuario',   
+            'IdRol',       
+            'IdUsuario',   
+            'IdRol'        
         );
     }
 

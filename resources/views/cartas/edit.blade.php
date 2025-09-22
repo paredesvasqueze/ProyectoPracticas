@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex" style="min-height: 100vh;">
 
-    <!-- Sidebar fijo -->
+    <!-- Sidebar -->
     <div class="text-white p-3 d-flex flex-column position-fixed" 
          style="width: 250px; height: 100vh; background-color: #99001F;">
         <div class="text-center mb-4">
@@ -12,164 +12,204 @@
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{{ route('usuarios.index') }}">
+                <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Gestión de Trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
-                    <i class="bi bi-file-earmark-text me-2"></i> Registro de Trámites
+                    <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
                 </a>
             </li>
-
-            <!-- Gestión de Empresas -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{{ route('empresas.index') }}">
+                <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('estudiantes.index') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
         </ul>
     </div>
 
-    <!-- Contenido principal -->
+    <!-- Contenido -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
-
-        <!-- Usuario arriba a la derecha -->
-        <div class="d-flex justify-content-end mb-3">
-            <div class="text-end">
-                <small>
-                    Usuario: {{ Auth::user()->persona->cNombre ?? '' }} {{ Auth::user()->persona->cApellido ?? '' }}
-                </small>
-                <div class="mt-2">
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <div class="d-flex justify-content-between mb-3">
+            <h2>Editar Trámite - Carta de Presentación</h2>
+            <a href="{{ route('cartas.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
         </div>
 
-        <!-- Título -->
-        <h2 class="mb-4">Editar Trámite (Carta de Presentación)</h2>
-
-        <!-- Formulario -->
         <div class="card shadow-sm">
             <div class="card-body">
+
+                {{-- Mensajes de error --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form action="{{ route('cartas.update', $carta->IdCartaPresentacion) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
-                    {{-- Estudiante --}}
-                    <div class="mb-3">
-                        <label for="IdEstudiante" class="form-label">Estudiante</label>
-                        <select name="IdEstudiante" id="IdEstudiante" class="form-select" required>
-                            <option value="">Seleccione un estudiante</option>
-                            @foreach($estudiantes as $estudiante)
-                                <option value="{{ $estudiante->IdEstudiante }}" {{ $carta->IdEstudiante == $estudiante->IdEstudiante ? 'selected' : '' }}>
-                                    {{ $estudiante->cNombre }} {{ $estudiante->cApellido }}
+                    <div class="row mb-3">
+                        <!-- Estudiante (No editable) -->
+                        <div class="col-md-6">
+                            <label class="form-label">Estudiante</label>
+                            <select class="form-select" disabled>
+                                <option>
+                                    {{ $carta->estudiante->persona->cNombre ?? '' }}
+                                    {{ $carta->estudiante->persona->cApellido ?? '' }}
+                                    ({{ $carta->estudiante->persona->cDNI ?? '' }})
                                 </option>
-                            @endforeach
-                        </select>
-                    </div>
+                            </select>
+                            <input type="hidden" name="IdEstudiante" value="{{ $carta->IdEstudiante }}">
+                        </div>
 
-                    {{-- Empresa --}}
-                    <div class="mb-3">
-                        <label for="IdEmpresa" class="form-label">Empresa</label>
-                        <select name="IdEmpresa" id="IdEmpresa" class="form-select" required>
-                            <option value="">Seleccione una empresa</option>
-                            @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->IdEmpresa }}" {{ $carta->IdEmpresa == $empresa->IdEmpresa ? 'selected' : '' }}>
-                                    {{ $empresa->cRazonSocial }}
+                        <!-- Empresa (No editable) -->
+                        <div class="col-md-6">
+                            <label class="form-label">Empresa</label>
+                            <select class="form-select" disabled>
+                                <option>
+                                    {{ $carta->empresa->cNombreEmpresa ?? '' }}
+                                    (RUC: {{ $carta->empresa->nRUC ?? '' }})
                                 </option>
-                            @endforeach
-                        </select>
+                            </select>
+                            <input type="hidden" name="IdEmpresa" value="{{ $carta->IdEmpresa }}">
+                        </div>
                     </div>
 
-                    {{-- Número de expediente --}}
-                    <div class="mb-3">
-                        <label for="nNroExpediente" class="form-label">N° Expediente</label>
-                        <input type="text" name="nNroExpediente" id="nNroExpediente" class="form-control" value="{{ $carta->nNroExpediente }}">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Nro Expediente</label>
+                            <input type="text" name="nNroExpediente" class="form-control" 
+                                   value="{{ old('nNroExpediente', $carta->nNroExpediente) }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nro Carta</label>
+                            <input type="text" name="nNroCarta" class="form-control" 
+                                   value="{{ old('nNroCarta', $carta->nNroCarta) }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nro Recibo</label>
+                            <input type="text" name="nNroResibo" class="form-control" 
+                                   value="{{ old('nNroResibo', $carta->nNroResibo) }}" readonly>
+                        </div>
                     </div>
 
-                    {{-- Número de carta --}}
-                    <div class="mb-3">
-                        <label for="nNroCarta" class="form-label">N° Carta</label>
-                        <input type="text" name="nNroCarta" id="nNroCarta" class="form-control" value="{{ $carta->nNroCarta }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Carta</label>
+                            <input type="date" name="dFechaCarta" class="form-control" 
+                                   value="{{ old('dFechaCarta', $carta->dFechaCarta ? $carta->dFechaCarta->format('Y-m-d') : '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Recojo</label>
+                            <input type="date" name="dFechaRecojo" class="form-control" 
+                                   value="{{ old('dFechaRecojo', $carta->dFechaRecojo ? $carta->dFechaRecojo->format('Y-m-d') : '') }}">
+                        </div>
                     </div>
 
-                    {{-- Fecha carta --}}
                     <div class="mb-3">
-                        <label for="dFechaCarta" class="form-label">Fecha Carta</label>
-                        <input type="date" name="dFechaCarta" id="dFechaCarta" class="form-control" value="{{ $carta->dFechaCarta }}">
+                        <label class="form-label">Observación</label>
+                        <textarea name="cObservacion" class="form-control" rows="3">{{ old('cObservacion', $carta->cObservacion) }}</textarea>
                     </div>
 
-                    {{-- Fecha recojo --}}
-                    <div class="mb-3">
-                        <label for="dFechaRecojo" class="form-label">Fecha Recojo</label>
-                        <input type="date" name="dFechaRecojo" id="dFechaRecojo" class="form-control" value="{{ $carta->dFechaRecojo }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">¿Presentó Supervisión?</label>
+                            <select name="bPresentoSupervision" class="form-select">
+                                <option value="0" {{ old('bPresentoSupervision', $carta->bPresentoSupervision) == 0 ? 'selected' : '' }}>No</option>
+                                <option value="1" {{ old('bPresentoSupervision', $carta->bPresentoSupervision) == 1 ? 'selected' : '' }}>Sí</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado</label>
+                            <select name="nEstado" class="form-select">
+                                <option value="En proceso" {{ old('nEstado', $carta->nEstado) == 'En proceso' ? 'selected' : '' }}>En proceso</option>
+                                <option value="Finalizado" {{ old('nEstado', $carta->nEstado) == 'Finalizado' ? 'selected' : '' }}>Finalizado</option>
+                                <option value="Observado" {{ old('nEstado', $carta->nEstado) == 'Observado' ? 'selected' : '' }}>Observado</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {{-- Número de recibo --}}
                     <div class="mb-3">
-                        <label for="nNroResibo" class="form-label">N° Recibo</label>
-                        <input type="text" name="nNroResibo" id="nNroResibo" class="form-control" value="{{ $carta->nNroResibo }}">
-                    </div>
-
-                    {{-- Observación --}}
-                    <div class="mb-3">
-                        <label for="cObservacion" class="form-label">Observación</label>
-                        <textarea name="cObservacion" id="cObservacion" class="form-control">{{ $carta->cObservacion }}</textarea>
-                    </div>
-
-                    {{-- Supervisión --}}
-                    <div class="mb-3">
-                        <label for="bPresentoSupervision" class="form-label">¿Presentó Supervisión?</label>
-                        <select name="bPresentoSupervision" id="bPresentoSupervision" class="form-select">
-                            <option value="0" {{ $carta->bPresentoSupervision == 0 ? 'selected' : '' }}>No</option>
-                            <option value="1" {{ $carta->bPresentoSupervision == 1 ? 'selected' : '' }}>Sí</option>
-                        </select>
-                    </div>
-
-                    {{-- Estado --}}
-                    <div class="mb-3">
-                        <label for="nEstado" class="form-label">Estado</label>
-                        <input type="text" name="nEstado" id="nEstado" class="form-control" value="{{ $carta->nEstado }}">
-                    </div>
-
-                    {{-- Fecha de registro --}}
-                    <div class="mb-3">
-                        <label for="dFechaRegistro" class="form-label">Fecha Registro</label>
-                        <input type="date" name="dFechaRegistro" id="dFechaRegistro" class="form-control" value="{{ $carta->dFechaRegistro }}">
-                    </div>
-
-                    {{-- Adjunto --}}
-                    <div class="mb-3">
-                        <label for="adjunto" class="form-label">Documento Adjunto</label>
-                        <input type="file" name="adjunto" id="adjunto" class="form-control">
+                        <label class="form-label">Documento Adjunto (PDF, JPG, PNG)</label>
+                        <input type="file" name="adjunto" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
                         @if($carta->adjunto)
-                            <p class="mt-2">Archivo actual: 
+                            <p class="mt-2">
+                                Archivo actual: 
                                 <a href="{{ asset('storage/'.$carta->adjunto) }}" target="_blank">Ver documento</a>
                             </p>
                         @endif
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Actualizar</button>
-                    <a href="{{ route('cartas.index') }}" class="btn btn-secondary">Cancelar</a>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-pencil-square"></i> Actualizar Trámite
+                        </button>
+                    </div>
+
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+{{-- Select2 --}}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#estudianteSelect').select2({
+        placeholder: "Buscar estudiante por nombre o DNI",
+        allowClear: true
+    });
+
+    function matchCustom(params, data) {
+        if ($.trim(params.term) === '') return data;
+        if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) return data;
+        return null;
+    }
+
+    $('#empresaSelect').select2({
+        placeholder: "Buscar empresa por nombre o RUC",
+        allowClear: true,
+        matcher: matchCustom
+    });
+});
+</script>
 @endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
 

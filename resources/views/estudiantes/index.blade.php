@@ -1,4 +1,3 @@
-{{-- resources/views/empresas/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -12,24 +11,31 @@
         </div>
 
         <ul class="nav flex-column mb-4">
+            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
+
+            <!-- Registro de Trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
                 </a>
             </li>
+
+            <!-- Gestión de Empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestión de Empresas
                 </a>
             </li>
+
+            <!-- Gestión de Estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
@@ -59,20 +65,25 @@
             </div>
         </div>
 
-        <h2 class="mb-4">Gestión de Empresas</h2>
-        <a href="{{ route('empresas.create') }}" class="btn btn-success mb-3">
-            <i class="bi bi-plus-circle"></i> Nueva Empresa
+        <h2 class="mb-4">Gestión de Estudiantes</h2>
+
+        <!-- Botón para crear nuevo estudiante -->
+        <a href="{{ route('estudiantes.create') }}" class="btn btn-success mb-3">
+            <i class="bi bi-plus-circle"></i> Nuevo Estudiante
         </a>
 
-        <!-- Formulario de búsqueda por nombre o RUC -->
-        <form action="{{ route('empresas.index') }}" method="GET" class="mb-3 d-flex">
-            <input type="text" name="search" class="form-control me-2" 
-                placeholder="Buscar por nombre o RUC" value="{{ request('search') }}">
+        <!-- Mensaje de éxito -->
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        <!-- Formulario de búsqueda por DNI -->
+        <form action="{{ route('estudiantes.index') }}" method="GET" class="mb-3 d-flex">
+            <input type="text" name="dni" class="form-control me-2" placeholder="Buscar por DNI" value="{{ request('dni') }}">
             <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('empresas.index') }}" class="btn btn-secondary">Limpiar</a>
+            <a href="{{ route('estudiantes.index') }}" class="btn btn-secondary">Limpiar</a>
         </form>
 
-        <!-- Tabla de empresas -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <table class="table table-striped table-bordered align-middle">
@@ -80,39 +91,40 @@
                         <tr>
                             <th>ID</th>
                             <th>Nombre</th>
-                            <th>RUC</th>
-                            <th>Dirección</th>
+                            <th>Apellido</th>
+                            <th>DNI</th>
                             <th>Correo</th>
-                            <th>Teléfono</th>
+                            <th>Programa de Estudios</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($empresas ?? [] as $empresa)
-                        <tr>
-                            <td>{{ $empresa->IdEmpresa }}</td>
-                            <td>{{ $empresa->cNombreEmpresa }}</td>
-                            <td>{{ $empresa->nRUC }}</td>
-                            <td>{{ $empresa->cDireccion }}</td>
-                            <td>{{ $empresa->cCorreo }}</td>
-                            <td>{{ $empresa->nTelefono }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('empresas.edit', $empresa->IdEmpresa) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil-square"></i> Editar
-                                </a>
-                                <form action="{{ route('empresas.destroy', $empresa->IdEmpresa) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('¿Seguro de eliminar esta empresa?')" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i> Eliminar
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
+                        @forelse($estudiantes as $estudiante)
+                            <tr>
+                                <td>{{ $estudiante->IdEstudiante }}</td>
+                                <td>{{ $estudiante->persona->cNombre ?? '' }}</td>
+                                <td>{{ $estudiante->persona->cApellido ?? '' }}</td>
+                                <td>{{ $estudiante->persona->cDNI ?? '' }}</td>
+                                <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
+                                <td>{{ $estudiante->nProgramaEstudios }}</td>
+                                <td class="text-center">
+                                    <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
+                                       class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                    <form action="{{ route('estudiantes.destroy', $estudiante->IdEstudiante) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="7" class="text-center">No hay empresas registradas.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="7" class="text-center">No hay estudiantes registrados.</td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -125,7 +137,4 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
-
-
-
 

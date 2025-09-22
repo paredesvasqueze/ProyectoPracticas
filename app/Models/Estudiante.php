@@ -10,11 +10,10 @@ class Estudiante extends Model
     protected $primaryKey = 'IdEstudiante';
     public $timestamps = false;
 
+    // Campos que se pueden asignar en masa
     protected $fillable = [
         'IdPersona',
-        'cCodigo',
-        'cCarrera',
-        'dFechaIngreso'
+        'nProgramaEstudios',
     ];
 
     // Relación con Persona
@@ -29,3 +28,4 @@ class Estudiante extends Model
         return $this->hasMany(CartaPresentacion::class, 'IdEstudiante');
     }
 }
+

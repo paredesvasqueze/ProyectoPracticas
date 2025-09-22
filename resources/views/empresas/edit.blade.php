@@ -12,27 +12,28 @@
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Registro de Trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text me-2"></i> Registro de Trámites
                 </a>
             </li>
-
-            <!-- Gestión de Empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('estudiantes.index') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
         </ul>
@@ -60,36 +61,52 @@
 
         <h2 class="mb-4">Editar Empresa</h2>
 
+        <!-- Mensajes de error -->
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Formulario -->
         <div class="card shadow-sm">
             <div class="card-body">
-                <form action="{{ route('empresas.update', $id) }}" method="POST">
+                <form action="{{ route('empresas.update', $empresa->IdEmpresa) }}" method="POST">
                     @csrf
                     @method('PUT')
 
                     <div class="mb-3">
                         <label for="cNombreEmpresa" class="form-label">Nombre de la Empresa</label>
-                        <input type="text" class="form-control" id="cNombreEmpresa" name="cNombreEmpresa" value="{{ old('cNombreEmpresa') }}" required>
+                        <input type="text" class="form-control" id="cNombreEmpresa" name="cNombreEmpresa" 
+                               value="{{ old('cNombreEmpresa', $empresa->cNombreEmpresa) }}" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="nRUC" class="form-label">RUC</label>
-                        <input type="text" class="form-control" id="nRUC" name="nRUC" value="{{ old('nRUC') }}" required>
+                        <input type="text" class="form-control" id="nRUC" name="nRUC" 
+                               value="{{ old('nRUC', $empresa->nRUC) }}" readonly>
                     </div>
 
                     <div class="mb-3">
                         <label for="cDireccion" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="cDireccion" name="cDireccion" value="{{ old('cDireccion') }}">
+                        <input type="text" class="form-control" id="cDireccion" name="cDireccion" 
+                               value="{{ old('cDireccion', $empresa->cDireccion) }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="cCorreo" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="cCorreo" name="cCorreo" value="{{ old('cCorreo') }}">
+                        <input type="email" class="form-control" id="cCorreo" name="cCorreo" 
+                               value="{{ old('cCorreo', $empresa->cCorreo) }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="nTelefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="nTelefono" name="nTelefono" value="{{ old('nTelefono') }}">
+                        <input type="text" class="form-control" id="nTelefono" name="nTelefono" 
+                               value="{{ old('nTelefono', $empresa->nTelefono) }}">
                     </div>
 
                     <div class="mt-4">
@@ -110,4 +127,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
+
 

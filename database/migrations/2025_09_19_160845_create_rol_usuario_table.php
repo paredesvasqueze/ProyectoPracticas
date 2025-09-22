@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rol_usuario', function (Blueprint $table) {
-            $table->id('idrolusuario'); // PK
-            $table->unsignedBigInteger('idrol');     // FK a rol
-            $table->unsignedBigInteger('idusuario'); // FK a usuario
+            $table->id('idrolusuario'); 
+            $table->unsignedBigInteger('idrol');     
+            $table->unsignedBigInteger('idusuario'); 
             $table->timestamps();
 
             $table->foreign('idrol')->references('idrol')->on('rol')->onDelete('cascade')->onUpdate('cascade');
