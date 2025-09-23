@@ -11,11 +11,15 @@ class Empresa extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'nTipoEmpresa',
         'cNombreEmpresa',
+        'nRepresentanteLegal',
+        'nProfesion',
+        'nCargo',
         'nRUC',
         'cDireccion',
         'cCorreo',
-        'nTelefono' 
+        'nTelefono'
     ];
 
     // Relación con cartas de presentación
@@ -24,4 +28,5 @@ class Empresa extends Model
         return $this->hasMany(CartaPresentacion::class, 'IdEmpresa');
     }
 }
+
 

@@ -79,7 +79,11 @@
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
+                            <th>Tipo</th>
                             <th>Nombre</th>
+                            <th>Representante</th>
+                            <th>Profesión</th>
+                            <th>Cargo</th>
                             <th>RUC</th>
                             <th>Dirección</th>
                             <th>Correo</th>
@@ -91,7 +95,11 @@
                         @forelse ($empresas ?? [] as $empresa)
                         <tr>
                             <td>{{ $empresa->IdEmpresa }}</td>
+                            <td>{{ $empresa->nTipoEmpresa }}</td>
                             <td>{{ $empresa->cNombreEmpresa }}</td>
+                            <td>{{ $empresa->nRepresentanteLegal }}</td>
+                            <td>{{ $empresa->nProfesion }}</td>
+                            <td>{{ $empresa->nCargo }}</td>
                             <td>{{ $empresa->nRUC }}</td>
                             <td>{{ $empresa->cDireccion }}</td>
                             <td>{{ $empresa->cCorreo }}</td>
@@ -113,7 +121,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center">No hay empresas registradas.</td>
+                            <td colspan="11" class="text-center">No hay empresas registradas.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -127,6 +135,8 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
 
 
 

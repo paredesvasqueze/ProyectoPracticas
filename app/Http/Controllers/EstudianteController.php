@@ -39,7 +39,10 @@ class EstudianteController extends Controller
             'cDNI'               => 'required|digits:8|unique:PERSONA,cDNI',
             'cCorreo'            => 'required|email|max:100',
             'nProgramaEstudios'  => 'required|string|max:100',
+            'nPlanEstudio'       => 'required|string|max:100',
+            'nModuloFormativo'   => 'required|string|max:100',
             'nCelular'           => 'required|digits:9',
+            'nTurno'             => 'required|in:Mañana,Tarde,Noche',
         ], [
             'cNombre.required'           => 'El nombre es obligatorio.',
             'cApellido.required'         => 'El apellido es obligatorio.',
@@ -49,8 +52,12 @@ class EstudianteController extends Controller
             'cCorreo.required'           => 'El correo es obligatorio.',
             'cCorreo.email'              => 'El correo no es válido.',
             'nProgramaEstudios.required' => 'El programa de estudios es obligatorio.',
+            'nPlanEstudio.required'      => 'El plan de estudio es obligatorio.',
+            'nModuloFormativo.required'  => 'El módulo formativo es obligatorio.',
             'nCelular.required'          => 'El celular es obligatorio.',
             'nCelular.digits'            => 'El celular debe tener exactamente 9 números.',
+            'nTurno.required'            => 'Debe seleccionar un turno.',
+            'nTurno.in'                  => 'El turno seleccionado no es válido.',
         ]);
 
         $persona = Persona::create([
@@ -63,7 +70,10 @@ class EstudianteController extends Controller
         Estudiante::create([
             'IdPersona'         => $persona->IdPersona,
             'nProgramaEstudios' => $request->nProgramaEstudios,
+            'nPlanEstudio'      => $request->nPlanEstudio,
+            'nModuloFormativo'  => $request->nModuloFormativo,
             'nCelular'          => $request->nCelular,
+            'nTurno'            => $request->nTurno,
         ]);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante registrado correctamente.');
@@ -87,7 +97,10 @@ class EstudianteController extends Controller
             'cDNI'               => 'required|digits:8|unique:PERSONA,cDNI,' . $estudiante->persona->IdPersona . ',IdPersona',
             'cCorreo'            => 'required|email|max:100',
             'nProgramaEstudios'  => 'required|string|max:100',
+            'nPlanEstudio'       => 'required|string|max:100',
+            'nModuloFormativo'   => 'required|string|max:100',
             'nCelular'           => 'required|digits:9',
+            'nTurno'             => 'required|in:Mañana,Tarde,Noche',
         ], [
             'cNombre.required'           => 'El nombre es obligatorio.',
             'cApellido.required'         => 'El apellido es obligatorio.',
@@ -97,8 +110,12 @@ class EstudianteController extends Controller
             'cCorreo.required'           => 'El correo es obligatorio.',
             'cCorreo.email'              => 'El correo no es válido.',
             'nProgramaEstudios.required' => 'El programa de estudios es obligatorio.',
+            'nPlanEstudio.required'      => 'El plan de estudio es obligatorio.',
+            'nModuloFormativo.required'  => 'El módulo formativo es obligatorio.',
             'nCelular.required'          => 'El celular es obligatorio.',
             'nCelular.digits'            => 'El celular debe tener exactamente 9 números.',
+            'nTurno.required'            => 'Debe seleccionar un turno.',
+            'nTurno.in'                  => 'El turno seleccionado no es válido.',
         ]);
 
         // Actualizar datos de persona
@@ -112,7 +129,10 @@ class EstudianteController extends Controller
         // Actualizar datos de estudiante
         $estudiante->update([
             'nProgramaEstudios' => $request->nProgramaEstudios,
+            'nPlanEstudio'      => $request->nPlanEstudio,
+            'nModuloFormativo'  => $request->nModuloFormativo,
             'nCelular'          => $request->nCelular,
+            'nTurno'            => $request->nTurno,
         ]);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado correctamente.');
@@ -132,6 +152,8 @@ class EstudianteController extends Controller
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
     }
 }
+
+
 
 
 

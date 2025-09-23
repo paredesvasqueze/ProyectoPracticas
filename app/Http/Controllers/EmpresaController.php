@@ -32,13 +32,19 @@ class EmpresaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'nTipoEmpresa' => 'required|string|max:20',
             'cNombreEmpresa' => 'required|string|max:100',
+            'nRepresentanteLegal' => 'required|string|max:100',
+            'nProfesion' => 'nullable|string|max:100',
+            'nCargo' => 'nullable|string|max:20',
             'nRUC' => 'required|digits:11|unique:EMPRESA,nRUC',
             'cDireccion' => 'nullable|string|max:200',
             'cCorreo' => 'nullable|email|max:100',
             'nTelefono' => 'nullable|string|max:20',
         ], [
+            'nTipoEmpresa.required' => 'El tipo de empresa es obligatorio.',
             'cNombreEmpresa.required' => 'El nombre de la empresa es obligatorio.',
+            'nRepresentanteLegal.required' => 'El representante legal es obligatorio.',
             'nRUC.required' => 'El RUC es obligatorio.',
             'nRUC.digits' => 'El RUC debe tener exactamente 11 dígitos.',
             'nRUC.unique' => 'Este RUC ya está registrado.',
@@ -46,7 +52,11 @@ class EmpresaController extends Controller
         ]);
 
         Empresa::create([
+            'nTipoEmpresa' => $request->nTipoEmpresa,
             'cNombreEmpresa' => $request->cNombreEmpresa,
+            'nRepresentanteLegal' => $request->nRepresentanteLegal,
+            'nProfesion' => $request->nProfesion,
+            'nCargo' => $request->nCargo,
             'nRUC' => $request->nRUC,
             'cDireccion' => $request->cDireccion,
             'cCorreo' => $request->cCorreo,
@@ -69,13 +79,19 @@ class EmpresaController extends Controller
         $empresa = Empresa::findOrFail($id);
 
         $request->validate([
+            'nTipoEmpresa' => 'required|string|max:20',
             'cNombreEmpresa' => 'required|string|max:100',
+            'nRepresentanteLegal' => 'required|string|max:100',
+            'nProfesion' => 'nullable|string|max:100',
+            'nCargo' => 'nullable|string|max:20',
             'nRUC' => 'required|digits:11|unique:EMPRESA,nRUC,' . $empresa->IdEmpresa . ',IdEmpresa',
             'cDireccion' => 'nullable|string|max:200',
             'cCorreo' => 'nullable|email|max:100',
             'nTelefono' => 'nullable|string|max:20',
         ], [
+            'nTipoEmpresa.required' => 'El tipo de empresa es obligatorio.',
             'cNombreEmpresa.required' => 'El nombre de la empresa es obligatorio.',
+            'nRepresentanteLegal.required' => 'El representante legal es obligatorio.',
             'nRUC.required' => 'El RUC es obligatorio.',
             'nRUC.digits' => 'El RUC debe tener exactamente 11 dígitos.',
             'nRUC.unique' => 'Este RUC ya está registrado.',
@@ -83,7 +99,11 @@ class EmpresaController extends Controller
         ]);
 
         $empresa->update([
+            'nTipoEmpresa' => $request->nTipoEmpresa,
             'cNombreEmpresa' => $request->cNombreEmpresa,
+            'nRepresentanteLegal' => $request->nRepresentanteLegal,
+            'nProfesion' => $request->nProfesion,
+            'nCargo' => $request->nCargo,
             'nRUC' => $request->nRUC,
             'cDireccion' => $request->cDireccion,
             'cCorreo' => $request->cCorreo,
@@ -102,6 +122,7 @@ class EmpresaController extends Controller
         return redirect()->route('empresas.index')->with('success', 'Empresa eliminada correctamente.');
     }
 }
+
 
 
 

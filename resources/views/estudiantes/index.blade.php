@@ -1,3 +1,4 @@
+{{-- resources/views/estudiantes/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -11,31 +12,24 @@
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Registro de Trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
                 </a>
             </li>
-
-            <!-- Gestión de Empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestión de Empresas
                 </a>
             </li>
-
-            <!-- Gestión de Estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
@@ -96,6 +90,9 @@
                             <th>Correo</th>
                             <th>Celular</th>
                             <th>Programa de Estudios</th>
+                            <th>Plan de Estudio</th>
+                            <th>Módulo Formativo</th>
+                            <th>Turno</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -109,6 +106,9 @@
                                 <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
                                 <td>{{ $estudiante->nCelular }}</td>
                                 <td>{{ $estudiante->nProgramaEstudios }}</td>
+                                <td>{{ $estudiante->nPlanEstudio }}</td>
+                                <td>{{ $estudiante->nModuloFormativo }}</td>
+                                <td>{{ $estudiante->nTurno }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
                                        class="btn btn-warning btn-sm">
@@ -127,7 +127,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">No hay estudiantes registrados.</td>
+                                <td colspan="11" class="text-center">No hay estudiantes registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -141,5 +141,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
 
 

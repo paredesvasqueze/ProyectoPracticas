@@ -80,9 +80,33 @@
                     @method('PUT')
 
                     <div class="mb-3">
+                        <label for="nTipoEmpresa" class="form-label">Tipo de Empresa</label>
+                        <input type="text" class="form-control" id="nTipoEmpresa" name="nTipoEmpresa" 
+                               value="{{ old('nTipoEmpresa', $empresa->nTipoEmpresa) }}" required>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="cNombreEmpresa" class="form-label">Nombre de la Empresa</label>
                         <input type="text" class="form-control" id="cNombreEmpresa" name="cNombreEmpresa" 
                                value="{{ old('cNombreEmpresa', $empresa->cNombreEmpresa) }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nRepresentanteLegal" class="form-label">Representante Legal</label>
+                        <input type="text" class="form-control" id="nRepresentanteLegal" name="nRepresentanteLegal" 
+                               value="{{ old('nRepresentanteLegal', $empresa->nRepresentanteLegal) }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nProfesion" class="form-label">Profesión</label>
+                        <input type="text" class="form-control" id="nProfesion" name="nProfesion" 
+                               value="{{ old('nProfesion', $empresa->nProfesion) }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nCargo" class="form-label">Cargo</label>
+                        <input type="text" class="form-control" id="nCargo" name="nCargo" 
+                               value="{{ old('nCargo', $empresa->nCargo) }}">
                     </div>
 
                     <div class="mb-3">
@@ -127,6 +151,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 

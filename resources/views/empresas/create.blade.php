@@ -12,31 +12,24 @@
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Registro de Trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text me-2"></i> Registro de Trámites
                 </a>
             </li>
-
-            <!-- Gestión de Empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
-
-            <!-- Gestión de Estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
@@ -75,8 +68,32 @@
                     @csrf
 
                     <div class="mb-3">
+                        <label for="nTipoEmpresa" class="form-label">Tipo de Empresa</label>
+                        <select class="form-select" id="nTipoEmpresa" name="nTipoEmpresa" required>
+                            <option value="">--Seleccionar--</option>
+                            <option value="Pública">Pública</option>
+                            <option value="Privada">Privada</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="cNombreEmpresa" class="form-label">Nombre de la Empresa</label>
                         <input type="text" class="form-control" id="cNombreEmpresa" name="cNombreEmpresa" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nRepresentanteLegal" class="form-label">Representante Legal</label>
+                        <input type="text" class="form-control" id="nRepresentanteLegal" name="nRepresentanteLegal">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nProfesion" class="form-label">Profesión del Representante</label>
+                        <input type="text" class="form-control" id="nProfesion" name="nProfesion">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nCargo" class="form-label">Cargo del Representante</label>
+                        <input type="text" class="form-control" id="nCargo" name="nCargo">
                     </div>
 
                     <div class="mb-3">
@@ -117,3 +134,5 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+

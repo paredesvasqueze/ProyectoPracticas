@@ -98,16 +98,35 @@
 
                     <!-- Datos de Estudiante -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label">Celular</label>
                             <input type="text" name="nCelular" class="form-control" 
                                    value="{{ old('nCelular') }}" required 
                                    pattern="\d{9}" title="El celular debe tener 9 números">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label">Programa de Estudios</label>
                             <input type="text" name="nProgramaEstudios" class="form-control" 
                                    value="{{ old('nProgramaEstudios') }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Plan de Estudio</label>
+                            <input type="text" name="nPlanEstudio" class="form-control" 
+                                   value="{{ old('nPlanEstudio') }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Módulo Formativo</label>
+                            <input type="text" name="nModuloFormativo" class="form-control" 
+                                   value="{{ old('nModuloFormativo') }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Turno</label>
+                            <select name="nTurno" class="form-control" required>
+                                <option value="">--Seleccionar--</option>
+                                <option value="Mañana" {{ old('nTurno') == 'Mañana' ? 'selected' : '' }}>Mañana</option>
+                                <option value="Tarde" {{ old('nTurno') == 'Tarde' ? 'selected' : '' }}>Tarde</option>
+                                <option value="Noche" {{ old('nTurno') == 'Noche' ? 'selected' : '' }}>Noche</option>
+                            </select>
                         </div>
                     </div>
 
@@ -125,6 +144,9 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
+
 
 
 

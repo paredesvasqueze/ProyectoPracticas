@@ -14,7 +14,10 @@ class Estudiante extends Model
     protected $fillable = [
         'IdPersona',
         'nProgramaEstudios',
-        'nCelular', 
+        'nPlanEstudio',
+        'nModuloFormativo',
+        'nCelular',
+        'nTurno',
     ];
 
     // Relación con Persona
@@ -29,5 +32,7 @@ class Estudiante extends Model
         return $this->hasMany(CartaPresentacion::class, 'IdEstudiante');
     }
 }
+
+
 
 

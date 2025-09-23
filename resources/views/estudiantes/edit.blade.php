@@ -72,17 +72,19 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- Datos Personales (No editables) -->
+                    <!-- Datos Personales -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Nombre</label>
                             <input type="text" name="cNombre" class="form-control" 
-                                   value="{{ old('cNombre', $estudiante->persona->cNombre) }}" readonly>
+                                   value="{{ old('cNombre', $estudiante->persona->cNombre) }}" 
+                                   required pattern="[A-Za-z\s]+" title="Solo letras">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Apellido</label>
                             <input type="text" name="cApellido" class="form-control" 
-                                   value="{{ old('cApellido', $estudiante->persona->cApellido) }}" readonly>
+                                   value="{{ old('cApellido', $estudiante->persona->cApellido) }}" 
+                                   required pattern="[A-Za-z\s]+" title="Solo letras">
                         </div>
                     </div>
 
@@ -90,7 +92,8 @@
                         <div class="col-md-6">
                             <label class="form-label">DNI</label>
                             <input type="text" name="cDNI" class="form-control" 
-                                   value="{{ old('cDNI', $estudiante->persona->cDNI) }}" readonly>
+                                   value="{{ old('cDNI', $estudiante->persona->cDNI) }}" 
+                                   required pattern="\d{8}" maxlength="8" title="El DNI debe tener 8 números">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Correo</label>
@@ -101,17 +104,38 @@
 
                     <!-- Datos de Estudiante -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label">Programa de Estudios</label>
                             <input type="text" name="nProgramaEstudios" class="form-control" 
                                    value="{{ old('nProgramaEstudios', $estudiante->nProgramaEstudios) }}" required>
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Plan de Estudio</label>
+                            <input type="text" name="nPlanEstudio" class="form-control" 
+                                   value="{{ old('nPlanEstudio', $estudiante->nPlanEstudio) }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Módulo Formativo</label>
+                            <input type="text" name="nModuloFormativo" class="form-control" 
+                                   value="{{ old('nModuloFormativo', $estudiante->nModuloFormativo) }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Turno</label>
+                            <select name="nTurno" class="form-control" required>
+                                <option value="">Seleccionar</option>
+                                <option value="Mañana" {{ old('nTurno', $estudiante->nTurno) == 'Mañana' ? 'selected' : '' }}>Mañana</option>
+                                <option value="Tarde" {{ old('nTurno', $estudiante->nTurno) == 'Tarde' ? 'selected' : '' }}>Tarde</option>
+                                <option value="Noche" {{ old('nTurno', $estudiante->nTurno) == 'Noche' ? 'selected' : '' }}>Noche</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Celular</label>
                             <input type="text" name="nCelular" class="form-control" 
                                    value="{{ old('nCelular', $estudiante->nCelular) }}" 
-                                   pattern="[0-9]{9}" maxlength="9" 
-                                   placeholder="Ej: 987654321" required>
+                                   pattern="\d{9}" maxlength="9" placeholder="Ej: 987654321" required>
                         </div>
                     </div>
 
@@ -130,4 +154,8 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
+
+
 
