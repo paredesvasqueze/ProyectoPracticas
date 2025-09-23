@@ -72,6 +72,7 @@
                         <select class="form-select" id="nTipoEmpresa" name="nTipoEmpresa" required>
                             <option value="">--Seleccionar--</option>
                             
+                            
                         </select>
                     </div>
 
