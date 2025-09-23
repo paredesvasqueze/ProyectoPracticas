@@ -100,10 +100,19 @@
                     </div>
 
                     <!-- Datos de Estudiante -->
-                    <div class="mb-3">
-                        <label class="form-label">Programa de Estudios</label>
-                        <input type="text" name="nProgramaEstudios" class="form-control" 
-                               value="{{ old('nProgramaEstudios', $estudiante->nProgramaEstudios) }}" required>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Programa de Estudios</label>
+                            <input type="text" name="nProgramaEstudios" class="form-control" 
+                                   value="{{ old('nProgramaEstudios', $estudiante->nProgramaEstudios) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Celular</label>
+                            <input type="text" name="nCelular" class="form-control" 
+                                   value="{{ old('nCelular', $estudiante->nCelular) }}" 
+                                   pattern="[0-9]{9}" maxlength="9" 
+                                   placeholder="Ej: 987654321" required>
+                        </div>
                     </div>
 
                     <div class="text-end">
@@ -121,3 +130,4 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+

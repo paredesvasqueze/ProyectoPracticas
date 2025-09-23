@@ -100,6 +100,7 @@
                                 <a href="{{ route('empresas.edit', $empresa->IdEmpresa) }}" class="btn btn-warning btn-sm">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
+                                <!--
                                 <form action="{{ route('empresas.destroy', $empresa->IdEmpresa) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -107,6 +108,7 @@
                                         <i class="bi bi-trash"></i> Eliminar
                                     </button>
                                 </form>
+                                -->
                             </td>
                         </tr>
                         @empty

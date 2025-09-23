@@ -34,32 +34,36 @@ class EstudianteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cNombre' => 'required|string|max:100',
-            'cApellido' => 'required|string|max:100',
-            'cDNI' => 'required|digits:8|unique:PERSONA,cDNI',
-            'cCorreo' => 'required|email|max:100',
-            'nProgramaEstudios' => 'required|string|max:100',
+            'cNombre'            => 'required|string|max:100',
+            'cApellido'          => 'required|string|max:100',
+            'cDNI'               => 'required|digits:8|unique:PERSONA,cDNI',
+            'cCorreo'            => 'required|email|max:100',
+            'nProgramaEstudios'  => 'required|string|max:100',
+            'nCelular'           => 'required|digits:9',
         ], [
-            'cNombre.required' => 'El nombre es obligatorio.',
-            'cApellido.required' => 'El apellido es obligatorio.',
-            'cDNI.required' => 'El DNI es obligatorio.',
-            'cDNI.digits' => 'El DNI debe tener exactamente 8 números.',
-            'cDNI.unique' => 'Este DNI ya está registrado.',
-            'cCorreo.required' => 'El correo es obligatorio.',
-            'cCorreo.email' => 'El correo no es válido.',
+            'cNombre.required'           => 'El nombre es obligatorio.',
+            'cApellido.required'         => 'El apellido es obligatorio.',
+            'cDNI.required'              => 'El DNI es obligatorio.',
+            'cDNI.digits'                => 'El DNI debe tener exactamente 8 números.',
+            'cDNI.unique'                => 'Este DNI ya está registrado.',
+            'cCorreo.required'           => 'El correo es obligatorio.',
+            'cCorreo.email'              => 'El correo no es válido.',
             'nProgramaEstudios.required' => 'El programa de estudios es obligatorio.',
+            'nCelular.required'          => 'El celular es obligatorio.',
+            'nCelular.digits'            => 'El celular debe tener exactamente 9 números.',
         ]);
 
         $persona = Persona::create([
-            'cNombre' => $request->cNombre,
-            'cApellido' => $request->cApellido,
-            'cDNI' => $request->cDNI,
-            'cCorreo' => $request->cCorreo,
+            'cNombre'  => $request->cNombre,
+            'cApellido'=> $request->cApellido,
+            'cDNI'     => $request->cDNI,
+            'cCorreo'  => $request->cCorreo,
         ]);
 
         Estudiante::create([
-            'IdPersona' => $persona->IdPersona,
+            'IdPersona'         => $persona->IdPersona,
             'nProgramaEstudios' => $request->nProgramaEstudios,
+            'nCelular'          => $request->nCelular,
         ]);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante registrado correctamente.');
@@ -78,31 +82,37 @@ class EstudianteController extends Controller
         $estudiante = Estudiante::with('persona')->findOrFail($id);
 
         $request->validate([
-            'cNombre' => 'required|string|max:100',
-            'cApellido' => 'required|string|max:100',
-            'cDNI' => 'required|digits:8|unique:PERSONA,cDNI,'.$estudiante->persona->IdPersona.',IdPersona',
-            'cCorreo' => 'required|email|max:100',
-            'nProgramaEstudios' => 'required|string|max:100',
+            'cNombre'            => 'required|string|max:100',
+            'cApellido'          => 'required|string|max:100',
+            'cDNI'               => 'required|digits:8|unique:PERSONA,cDNI,' . $estudiante->persona->IdPersona . ',IdPersona',
+            'cCorreo'            => 'required|email|max:100',
+            'nProgramaEstudios'  => 'required|string|max:100',
+            'nCelular'           => 'required|digits:9',
         ], [
-            'cNombre.required' => 'El nombre es obligatorio.',
-            'cApellido.required' => 'El apellido es obligatorio.',
-            'cDNI.required' => 'El DNI es obligatorio.',
-            'cDNI.digits' => 'El DNI debe tener exactamente 8 números.',
-            'cDNI.unique' => 'Este DNI ya está registrado.',
-            'cCorreo.required' => 'El correo es obligatorio.',
-            'cCorreo.email' => 'El correo no es válido.',
+            'cNombre.required'           => 'El nombre es obligatorio.',
+            'cApellido.required'         => 'El apellido es obligatorio.',
+            'cDNI.required'              => 'El DNI es obligatorio.',
+            'cDNI.digits'                => 'El DNI debe tener exactamente 8 números.',
+            'cDNI.unique'                => 'Este DNI ya está registrado.',
+            'cCorreo.required'           => 'El correo es obligatorio.',
+            'cCorreo.email'              => 'El correo no es válido.',
             'nProgramaEstudios.required' => 'El programa de estudios es obligatorio.',
+            'nCelular.required'          => 'El celular es obligatorio.',
+            'nCelular.digits'            => 'El celular debe tener exactamente 9 números.',
         ]);
 
+        // Actualizar datos de persona
         $estudiante->persona->update([
-            'cNombre' => $request->cNombre,
-            'cApellido' => $request->cApellido,
-            'cDNI' => $request->cDNI,
-            'cCorreo' => $request->cCorreo,
+            'cNombre'  => $request->cNombre,
+            'cApellido'=> $request->cApellido,
+            'cDNI'     => $request->cDNI,
+            'cCorreo'  => $request->cCorreo,
         ]);
 
+        // Actualizar datos de estudiante
         $estudiante->update([
             'nProgramaEstudios' => $request->nProgramaEstudios,
+            'nCelular'          => $request->nCelular,
         ]);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado correctamente.');
@@ -113,7 +123,7 @@ class EstudianteController extends Controller
     {
         $estudiante = Estudiante::findOrFail($id);
 
-        if($estudiante->persona) {
+        if ($estudiante->persona) {
             $estudiante->persona->delete();
         }
 
@@ -122,6 +132,7 @@ class EstudianteController extends Controller
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
     }
 }
+
 
 
 

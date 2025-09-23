@@ -94,6 +94,7 @@
                             <th>Apellido</th>
                             <th>DNI</th>
                             <th>Correo</th>
+                            <th>Celular</th>
                             <th>Programa de Estudios</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -106,12 +107,14 @@
                                 <td>{{ $estudiante->persona->cApellido ?? '' }}</td>
                                 <td>{{ $estudiante->persona->cDNI ?? '' }}</td>
                                 <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
+                                <td>{{ $estudiante->nCelular }}</td>
                                 <td>{{ $estudiante->nProgramaEstudios }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
                                        class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil-square"></i> Editar
                                     </a>
+                                    <!--
                                     <form action="{{ route('estudiantes.destroy', $estudiante->IdEstudiante) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -119,11 +122,12 @@
                                             <i class="bi bi-trash"></i> Eliminar
                                         </button>
                                     </form>
+                                    -->
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No hay estudiantes registrados.</td>
+                                <td colspan="8" class="text-center">No hay estudiantes registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -137,4 +141,5 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 

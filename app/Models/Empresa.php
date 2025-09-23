@@ -15,7 +15,7 @@ class Empresa extends Model
         'nRUC',
         'cDireccion',
         'cCorreo',
-        'nTelefono'
+        'nTelefono' 
     ];
 
     // Relación con cartas de presentación
