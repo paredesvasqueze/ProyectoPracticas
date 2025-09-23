@@ -71,8 +71,7 @@
                         <label for="nTipoEmpresa" class="form-label">Tipo de Empresa</label>
                         <select class="form-select" id="nTipoEmpresa" name="nTipoEmpresa" required>
                             <option value="">--Seleccionar--</option>
-                            <option value="Pública">Pública</option>
-                            <option value="Privada">Privada</option>
+                            
                         </select>
                     </div>
 
