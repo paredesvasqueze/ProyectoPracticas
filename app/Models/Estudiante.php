@@ -20,6 +20,10 @@ class Estudiante extends Model
         'nTurno',
     ];
 
+    // =============================
+    // Relaciones
+    // =============================
+
     // Relación con Persona
     public function persona()
     {
@@ -31,7 +35,34 @@ class Estudiante extends Model
     {
         return $this->hasMany(CartaPresentacion::class, 'IdEstudiante');
     }
+
+    // Relaciones con la tabla CONSTANTE
+    public function programa()
+    {
+        return $this->belongsTo(Constante::class, 'nProgramaEstudios', 'nConstValor')
+                    ->where('nConstGrupo', 'PROGRAMA_ESTUDIO');
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Constante::class, 'nPlanEstudio', 'nConstValor')
+                    ->where('nConstGrupo', 'PLAN_ESTUDIO');
+    }
+
+    public function modulo()
+    {
+        return $this->belongsTo(Constante::class, 'nModuloFormativo', 'nConstValor')
+                    ->where('nConstGrupo', 'MODULO_FORMATIVO');
+    }
+
+    public function turno()
+    {
+        return $this->belongsTo(Constante::class, 'nTurno', 'nConstValor')
+                    ->where('nConstGrupo', 'TURNO');
+    }
 }
+
+
 
 
 

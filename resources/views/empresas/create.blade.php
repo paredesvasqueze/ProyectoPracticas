@@ -1,4 +1,3 @@
-{{-- resources/views/empresas/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -71,8 +70,8 @@
                         <label for="nTipoEmpresa" class="form-label">Tipo de Empresa</label>
                         <select class="form-select" id="nTipoEmpresa" name="nTipoEmpresa" required>
                             <option value="">--Seleccionar--</option>
-                            
-                            
+                            <option value="Pública">Pública</option>
+                            <option value="Privada">Privada</option>
                         </select>
                     </div>
 
@@ -134,5 +133,6 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 

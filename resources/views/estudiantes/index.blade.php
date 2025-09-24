@@ -105,10 +105,13 @@
                                 <td>{{ $estudiante->persona->cDNI ?? '' }}</td>
                                 <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
                                 <td>{{ $estudiante->nCelular }}</td>
-                                <td>{{ $estudiante->nProgramaEstudios }}</td>
-                                <td>{{ $estudiante->nPlanEstudio }}</td>
-                                <td>{{ $estudiante->nModuloFormativo }}</td>
-                                <td>{{ $estudiante->nTurno }}</td>
+
+                                <!-- Mostrar textos desde las relaciones -->
+                                <td>{{ $estudiante->programa->nConstDescripcion ?? '' }}</td>
+                                <td>{{ $estudiante->plan->nConstDescripcion ?? '' }}</td>
+                                <td>{{ $estudiante->modulo->nConstDescripcion ?? '' }}</td>
+                                <td>{{ $estudiante->turno->nConstDescripcion ?? '' }}</td>
+
                                 <td class="text-center">
                                     <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
                                        class="btn btn-warning btn-sm">
@@ -141,6 +144,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 
