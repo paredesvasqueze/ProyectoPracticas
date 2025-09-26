@@ -98,7 +98,7 @@ class CartaPresentacionController extends Controller
     // 🔹 Ver detalle
     public function show(CartaPresentacion $carta)
     {
-        $carta->load(['estudiante.persona', 'empresa']); // Cargar relaciones
+        $carta->load(['estudiante.persona', 'empresa']); 
         return view('cartas.show', compact('carta'));
     }
 

@@ -12,31 +12,55 @@
         </div>
 
         <ul class="nav flex-column mb-4">
+            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
+
+            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
-                    <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
+                    <i class="bi bi-file-earmark-text-fill me-2"></i> Gestionar Trámites
                 </a>
             </li>
+
+            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
+
+            <!-- Módulo de estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
                     <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
+
+            <!-- Módulo de docentes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('docentes.index') }}">
+                    <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
+                </a>
+            </li>
+
+            <!-- Módulo de supervisiones -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('supervisiones.index') }}">
+                    <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
+                </a>
+            </li>
         </ul>
+
     </div>
 
     <!-- Contenido -->

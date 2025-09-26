@@ -12,31 +12,55 @@
         </div>
 
         <ul class="nav flex-column mb-4">
+            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
+
+            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
-                    <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
+                    <i class="bi bi-file-earmark-text-fill me-2"></i> Gestionar Trámites
                 </a>
             </li>
+
+            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
+
+            <!-- Módulo de estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
                     <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
+
+            <!-- Módulo de docentes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('docentes.index') }}">
+                    <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
+                </a>
+            </li>
+
+            <!-- Módulo de supervisiones -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('supervisiones.index') }}">
+                    <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
+                </a>
+            </li>
         </ul>
+
     </div>
 
     <!-- Contenido -->
@@ -106,26 +130,50 @@
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Programa de Estudios</label>
-                            <input type="text" name="nProgramaEstudios" class="form-control" 
-                                   value="{{ old('nProgramaEstudios', $estudiante->nProgramaEstudios) }}" required>
+                            <select name="nProgramaEstudios" class="form-control" required>
+                                <option value="">--Seleccionar--</option>
+                                @foreach ($programas as $prog)
+                                    <option value="{{ $prog->nConstValor }}"
+                                        {{ old('nProgramaEstudios', $estudiante->nProgramaEstudios) == $prog->nConstValor ? 'selected' : '' }}>
+                                        {{ $prog->nConstDescripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Plan de Estudio</label>
-                            <input type="text" name="nPlanEstudio" class="form-control" 
-                                   value="{{ old('nPlanEstudio', $estudiante->nPlanEstudio) }}" required>
+                            <select name="nPlanEstudio" class="form-control" required>
+                                <option value="">--Seleccionar--</option>
+                                @foreach ($planes as $plan)
+                                    <option value="{{ $plan->nConstValor }}"
+                                        {{ old('nPlanEstudio', $estudiante->nPlanEstudio) == $plan->nConstValor ? 'selected' : '' }}>
+                                        {{ $plan->nConstDescripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Módulo Formativo</label>
-                            <input type="text" name="nModuloFormativo" class="form-control" 
-                                   value="{{ old('nModuloFormativo', $estudiante->nModuloFormativo) }}" required>
+                            <select name="nModuloFormativo" class="form-control" required>
+                                <option value="">--Seleccionar--</option>
+                                @foreach ($modulos as $mod)
+                                    <option value="{{ $mod->nConstValor }}"
+                                        {{ old('nModuloFormativo', $estudiante->nModuloFormativo) == $mod->nConstValor ? 'selected' : '' }}>
+                                        {{ $mod->nConstDescripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Turno</label>
                             <select name="nTurno" class="form-control" required>
-                                <option value="">Seleccionar</option>
-                                <option value="Mañana" {{ old('nTurno', $estudiante->nTurno) == 'Mañana' ? 'selected' : '' }}>Mañana</option>
-                                <option value="Tarde" {{ old('nTurno', $estudiante->nTurno) == 'Tarde' ? 'selected' : '' }}>Tarde</option>
-                                <option value="Noche" {{ old('nTurno', $estudiante->nTurno) == 'Noche' ? 'selected' : '' }}>Noche</option>
+                                <option value="">--Seleccionar--</option>
+                                @foreach ($turnos as $turno)
+                                    <option value="{{ $turno->nConstValor }}"
+                                        {{ old('nTurno', $estudiante->nTurno) == $turno->nConstValor ? 'selected' : '' }}>
+                                        {{ $turno->nConstDescripcion }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -154,6 +202,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 

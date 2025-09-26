@@ -1,4 +1,4 @@
-{{-- resources/views/empresas/index.blade.php --}}
+{{-- resources/views/docentes/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -83,60 +83,52 @@
             </div>
         </div>
 
-        <h2 class="mb-4">Gestión de Empresas</h2>
-        <a href="{{ route('empresas.create') }}" class="btn btn-success mb-3">
-            <i class="bi bi-plus-circle"></i> Nueva Empresa
+        <h2 class="mb-4">Gestión de Docentes</h2>
+        <a href="{{ route('docentes.create') }}" class="btn btn-success mb-3">
+            <i class="bi bi-plus-circle"></i> Nuevo Docente
         </a>
 
-        <!-- Formulario de búsqueda por nombre o RUC -->
-        <form action="{{ route('empresas.index') }}" method="GET" class="mb-3 d-flex">
+        <!-- Formulario de búsqueda por nombre o DNI -->
+        <form action="{{ route('docentes.index') }}" method="GET" class="mb-3 d-flex">
             <input type="text" name="search" class="form-control me-2" 
-                placeholder="Buscar por nombre o RUC" value="{{ request('search') }}">
+                placeholder="Buscar por nombre o DNI" value="{{ request('search') }}">
             <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('empresas.index') }}" class="btn btn-secondary">Limpiar</a>
+            <a href="{{ route('docentes.index') }}" class="btn btn-secondary">Limpiar</a>
         </form>
 
-        <!-- Tabla de empresas -->
+        <!-- Tabla de docentes -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <table class="table table-striped table-bordered align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Tipo</th>
                             <th>Nombre</th>
-                            <th>Representante</th>
-                            <th>Profesión</th>
-                            <th>Cargo</th>
-                            <th>RUC</th>
-                            <th>Dirección</th>
+                            <th>Apellido</th>
+                            <th>DNI</th>
                             <th>Correo</th>
-                            <th>Teléfono</th>
+                            <th>Programa de Estudios</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($empresas ?? [] as $empresa)
+                        @forelse ($docentes ?? [] as $docente)
                         <tr>
-                            <td>{{ $empresa->IdEmpresa }}</td>
-                            <td>{{ $empresa->tipoEmpresa->nConstDescripcion ?? '-' }}</td>
-                            <td>{{ $empresa->cNombreEmpresa }}</td>
-                            <td>{{ $empresa->nRepresentanteLegal }}</td>
-                            <td>{{ $empresa->profesion->nConstDescripcion ?? '-' }}</td>
-                            <td>{{ $empresa->cargo->nConstDescripcion ?? '-' }}</td>
-                            <td>{{ $empresa->nRUC }}</td>
-                            <td>{{ $empresa->cDireccion }}</td>
-                            <td>{{ $empresa->cCorreo }}</td>
-                            <td>{{ $empresa->nTelefono }}</td>
+                            <td>{{ $docente->IdDocente }}</td>
+                            <td>{{ $docente->persona->cNombre ?? '-' }}</td>
+                            <td>{{ $docente->persona->cApellido ?? '-' }}</td>
+                            <td>{{ $docente->persona->cDNI ?? '-' }}</td>
+                            <td>{{ $docente->persona->cCorreo ?? '-' }}</td>
+                            <td>{{ $docente->nProgramaEstudios }}</td>
                             <td class="text-center">
-                                <a href="{{ route('empresas.edit', $empresa->IdEmpresa) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('docentes.edit', $docente->IdDocente) }}" class="btn btn-warning btn-sm">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
                                 <!--
-                                <form action="{{ route('empresas.destroy', $empresa->IdEmpresa) }}" method="POST" class="d-inline">
+                                <form action="{{ route('docentes.destroy', $docente->IdDocente) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" onclick="return confirm('¿Seguro de eliminar esta empresa?')" class="btn btn-danger btn-sm">
+                                    <button type="submit" onclick="return confirm('¿Seguro de eliminar este docente?')" class="btn btn-danger btn-sm">
                                         <i class="bi bi-trash"></i> Eliminar
                                     </button>
                                 </form>
@@ -145,7 +137,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center">No hay empresas registradas.</td>
+                            <td colspan="7" class="text-center">No hay docentes registrados.</td>
                         </tr>
                         @endforelse
                     </tbody>

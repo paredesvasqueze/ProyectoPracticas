@@ -19,15 +19,15 @@
                 </a>
             </li>
 
-            <!-- Gestión de Trámites -->
+            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
-                    <i class="bi bi-file-earmark-text me-2"></i> Gestionar Trámites
+                    <i class="bi bi-file-earmark-text-fill me-2"></i> Gestionar Trámites
                 </a>
             </li>
 
-            <!-- Gestión de Empresas -->
+            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
@@ -35,7 +35,7 @@
                 </a>
             </li>
 
-            <!-- Gestión de Estudiantes -->
+            <!-- Módulo de estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
@@ -43,7 +43,23 @@
                 </a>
             </li>
 
+            <!-- Módulo de docentes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('docentes.index') }}">
+                    <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
+                </a>
+            </li>
+
+            <!-- Módulo de supervisiones -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('supervisiones.index') }}">
+                    <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
+                </a>
+            </li>
         </ul>
+        
     </div>
 
     <!-- Contenido principal -->

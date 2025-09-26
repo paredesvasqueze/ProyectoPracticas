@@ -5,7 +5,9 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CartaPresentacionController;
 use App\Http\Controllers\EmpresaController;
-use App\Http\Controllers\EstudianteController; // 🔹 Nuevo controlador
+use App\Http\Controllers\EstudianteController;
+use App\Http\Controllers\DocenteController;
+use App\Http\Controllers\SupervisionController; 
 
 // ===============================
 // 🌐 Rutas públicas
@@ -42,9 +44,17 @@ Route::middleware(['auth'])->group(function () {
     // Empresas
     Route::resource('empresas', EmpresaController::class);
 
-    // 🔹 Estudiantes
+    // Estudiantes
     Route::resource('estudiantes', EstudianteController::class);
+
+    // Docentes
+    Route::resource('docentes', DocenteController::class);
+
+    // 🔹 Supervisiones
+    Route::resource('supervisiones', SupervisionController::class);
 });
+
+
 
 
 

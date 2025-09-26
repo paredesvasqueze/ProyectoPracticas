@@ -43,6 +43,22 @@
                     <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
+
+            <!-- Módulo de docentes -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('docentes.index') }}">
+                    <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
+                </a>
+            </li>
+
+            <!-- Módulo de supervisiones -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('supervisiones.index') }}">
+                    <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -76,7 +92,7 @@
                 <h5 class="card-title">Panel de Control</h5>
                 <p class="card-text">
                     Aquí podrás gestionar a los usuarios, registrar los trámites de cartas de presentación, 
-                    administrar las empresas vinculadas y registrar estudiantes.
+                    administrar las empresas vinculadas, registrar estudiantes, gestionar docentes y manejar supervisiones.
                 </p>
             </div>
         </div>
@@ -86,6 +102,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 
