@@ -59,6 +59,14 @@
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
+
+            <!-- Módulo de detalle de supervisión -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
+                href="{{ route('detalle_supervisiones.index') }}">
+                    <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
+                </a>
+            </li>
         </ul>
 
     </div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SupervisionController; 
+use App\Http\Controllers\DetalleSupervisionController;
 
 // ===============================
 // 🌐 Rutas públicas
@@ -50,8 +51,11 @@ Route::middleware(['auth'])->group(function () {
     // Docentes
     Route::resource('docentes', DocenteController::class);
 
-    // 🔹 Supervisiones
+    // Supervisiones
     Route::resource('supervisiones', SupervisionController::class);
+
+    // Detalle Supervisiones
+    Route::resource('detalle_supervisiones', DetalleSupervisionController::class);
 });
 
 

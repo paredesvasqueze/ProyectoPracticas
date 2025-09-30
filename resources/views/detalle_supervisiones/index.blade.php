@@ -1,79 +1,64 @@
-{{-- resources/views/estudiantes/index.blade.php --}}
+{{-- resources/views/detalle_supervisiones/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
 <div class="d-flex" style="min-height: 100vh;">
 
     <!-- Sidebar fijo -->
-    <div class="text-white p-3 d-flex flex-column position-fixed" 
+    <div class="text-white p-3 d-flex flex-column position-fixed"
          style="width: 250px; height: 100vh; background-color: #99001F;">
         <div class="text-center mb-4">
             <h4 class="fw-bold">Sistema EFSRT</h4>
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}"
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}"
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text-fill me-2"></i> Gestionar Trámites
                 </a>
             </li>
-
-            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}"
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
-
-            <!-- Módulo de estudiantes -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}"
                    href="{{ route('estudiantes.index') }}">
                     <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
-
-            <!-- Módulo de docentes -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}"
                    href="{{ route('docentes.index') }}">
                     <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
                 </a>
             </li>
-
-            <!-- Módulo de supervisiones -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
+                <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}"
                    href="{{ route('supervisiones.index') }}">
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
-
-            <!-- Módulo de detalle de supervisión -->
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
-                href="{{ route('detalle_supervisiones.index') }}">
+                <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}"
+                   href="{{ route('detalle_supervisiones.index') }}">
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
                 </a>
             </li>
         </ul>
-
     </div>
 
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
-
         <!-- Usuario arriba a la derecha -->
         <div class="d-flex justify-content-end mb-3">
             <div class="text-end">
@@ -91,69 +76,53 @@
             </div>
         </div>
 
-        <h2 class="mb-4">Gestión de Estudiantes</h2>
+        <!-- Encabezado -->
+        <h2 class="mb-4">Supervisión Detalle</h2>
 
-        <!-- Botón para crear nuevo estudiante -->
-        <a href="{{ route('estudiantes.create') }}" class="btn btn-success mb-3">
-            <i class="bi bi-plus-circle"></i> Nuevo Estudiante
-        </a>
+        <!-- Botón para crear nuevo -->
+        <div class="mb-3">
+            <a href="{{ route('detalle_supervisiones.create') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nuevo Detalle
+            </a>
+        </div>
 
-        <!-- Mensaje de éxito -->
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        <!-- Formulario de búsqueda por DNI -->
-        <form action="{{ route('estudiantes.index') }}" method="GET" class="mb-3 d-flex">
-            <input type="text" name="dni" class="form-control me-2" placeholder="Buscar por DNI" value="{{ request('dni') }}">
-            <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('estudiantes.index') }}" class="btn btn-secondary">Limpiar</a>
-        </form>
-
+        <!-- Tabla de registros -->
         <div class="card shadow-sm">
             <div class="card-body">
-                <table class="table table-striped table-bordered align-middle">
+                <table class="table table-striped table-bordered align-middle mt-3">
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>DNI</th>
-                            <th>Correo</th>
-                            <th>Celular</th>
-                            <th>Programa de Estudios</th>
-                            <th>Plan de Estudio</th>
-                            <th>Módulo Formativo</th>
-                            <th>Turno</th>
+                            <th>Supervisión</th>
+                            <th>N° Supervisión</th>
+                            <th>Fecha Supervisión</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($estudiantes as $estudiante)
+                        @forelse($detalles as $detalle)
                             <tr>
-                                <td>{{ $estudiante->IdEstudiante }}</td>
-                                <td>{{ $estudiante->persona->cNombre ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cApellido ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cDNI ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
-                                <td>{{ $estudiante->nCelular }}</td>
-
-                                <!-- Mostrar textos desde las relaciones -->
-                                <td>{{ $estudiante->programa->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->plan->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->modulo->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->turno->nConstDescripcion ?? '' }}</td>
-
+                                <td>{{ $detalle->IdSupervisionDetalle }}</td>
+                                <td>
+                                    Docente:
+                                    {{ optional($detalle->supervision->docente->persona)->cNombre ?? '---' }}
+                                    {{ optional($detalle->supervision->docente->persona)->cApellido ?? '' }}
+                                </td>
+                                <td>{{ $detalle->nNroSupervision }}</td>
+                                <td>{{ $detalle->dFechaSupervision }}</td>
                                 <td class="text-center">
-                                    <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
+                                    <a href="{{ route('detalle_supervisiones.edit', $detalle->IdSupervisionDetalle) }}" 
                                        class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil-square"></i> Editar
                                     </a>
                                     <!--
-                                    <form action="{{ route('estudiantes.destroy', $estudiante->IdEstudiante) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('detalle_supervisiones.destroy', $detalle->IdSupervisionDetalle) }}" 
+                                          method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
+                                        <button type="submit" 
+                                                onclick="return confirm('¿Eliminar este detalle?')" 
+                                                class="btn btn-danger btn-sm">
                                             <i class="bi bi-trash"></i> Eliminar
                                         </button>
                                     </form>
@@ -162,22 +131,26 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="text-center">No hay estudiantes registrados.</td>
+                                <td colspan="5" class="text-center">No hay detalles de supervisiones registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+
+                <!-- Paginación -->
+                @if(method_exists($detalles, 'links'))
+                    <div class="d-flex justify-content-center">
+                        {{ $detalles->links() }}
+                    </div>
+                @endif
             </div>
         </div>
-
     </div>
 </div>
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
-
-
 
 
 

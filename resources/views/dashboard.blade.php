@@ -59,6 +59,15 @@
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
+
+            <!-- Módulo de detalle de supervisión -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
+                href="{{ route('detalle_supervisiones.index') }}">
+                    <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
+                </a>
+            </li>
+
         </ul>
     </div>
 
@@ -92,7 +101,8 @@
                 <h5 class="card-title">Panel de Control</h5>
                 <p class="card-text">
                     Aquí podrás gestionar a los usuarios, registrar los trámites de cartas de presentación, 
-                    administrar las empresas vinculadas, registrar estudiantes, gestionar docentes y manejar supervisiones.
+                    administrar las empresas vinculadas, registrar estudiantes, gestionar docentes, manejar supervisiones 
+                    y revisar los detalles de supervisión.
                 </p>
             </div>
         </div>
@@ -102,6 +112,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 
