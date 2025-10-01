@@ -1,3 +1,4 @@
+{{-- resources/views/supervisiones/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -58,11 +59,20 @@
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
+
             <!-- Módulo de detalle de supervisión -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
-                href="{{ route('detalle_supervisiones.index') }}">
+                   href="{{ route('detalle_supervisiones.index') }}">
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
+                </a>
+            </li>
+
+            <!-- Módulo de documentos -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documentos.index') }}">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
                 </a>
             </li>
         </ul>
@@ -71,6 +81,7 @@
 
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
+
         <!-- Usuario arriba a la derecha -->
         <div class="d-flex justify-content-end mb-3">
             <div class="text-end">
@@ -93,6 +104,14 @@
         <a href="{{ route('supervisiones.create') }}" class="btn btn-success mb-3">
             <i class="bi bi-plus-circle"></i> Nueva Supervisión
         </a>
+
+        <!-- Formulario de búsqueda único -->
+        <form action="{{ route('supervisiones.index') }}" method="GET" class="mb-3 d-flex">
+            <input type="text" name="search" class="form-control me-2" 
+                placeholder="Buscar por nombre del docente o número de carta" value="{{ request('search') }}">
+            <button type="submit" class="btn btn-primary me-2">Buscar</button>
+            <a href="{{ route('supervisiones.index') }}" class="btn btn-secondary">Limpiar</a>
+        </form>
 
         <!-- Tabla de supervisiones -->
         <div class="card shadow-sm">
@@ -154,10 +173,12 @@
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 

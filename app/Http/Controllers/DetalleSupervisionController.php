@@ -11,11 +11,27 @@ class DetalleSupervisionController extends Controller
     /**
      * Mostrar listado de supervisiones detalle.
      */
-    public function index()
+    public function index(Request $request)
     { 
-        $detalles = SupervisionDetalle::with('supervision.docente')
+        $search = $request->input('search');
+        $fecha  = $request->input('fecha');
+
+        $detalles = SupervisionDetalle::with(['supervision.docente.persona'])
+            ->when($search, function ($query, $search) {
+                $query->whereHas('supervision.docente.persona', function ($q) use ($search) {
+                    $q->where('cNombre', 'like', "%{$search}%")
+                      ->orWhere('cApellido', 'like', "%{$search}%");
+                });
+            })
+            ->when($fecha, function ($query, $fecha) {
+                $query->whereDate('dFechaSupervision', $fecha);
+            })
             ->orderBy('IdSupervisionDetalle', 'desc')
-            ->paginate(10); 
+            ->paginate(10)
+            ->appends([
+                'search' => $search,
+                'fecha'  => $fecha
+            ]); // Mantiene los filtros en la paginación
 
         return view('detalle_supervisiones.index', compact('detalles'));
     }
@@ -98,6 +114,8 @@ class DetalleSupervisionController extends Controller
             ->with('success', 'Detalle de supervisión eliminado correctamente.');
     }
 }
+
+
 
 
 

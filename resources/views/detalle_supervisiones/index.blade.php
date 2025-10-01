@@ -54,6 +54,12 @@
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
                 </a>
             </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documentos.index') }}">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -86,6 +92,33 @@
             </a>
         </div>
 
+        <!-- Buscador por nombre y fecha -->
+        <form action="{{ route('detalle_supervisiones.index') }}" method="GET" class="mb-3 row g-2">
+
+            <!-- Buscar por nombre -->
+            <div class="col-md-5">
+                <input type="text" name="search" class="form-control"
+                       placeholder="Buscar por nombre del docente"
+                       value="{{ request('search') }}">
+            </div>
+
+            <!-- Buscar por fecha -->
+            <div class="col-md-4">
+                <input type="date" name="fecha" class="form-control"
+                       value="{{ request('fecha') }}">
+            </div>
+
+            <!-- Botones -->
+            <div class="col-md-3 d-flex">
+                <button type="submit" class="btn btn-primary me-2 w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a href="{{ route('detalle_supervisiones.index') }}" class="btn btn-secondary w-100">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </form>
+
         <!-- Tabla de registros -->
         <div class="card shadow-sm">
             <div class="card-body">
@@ -93,7 +126,7 @@
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Supervisión</th>
+                            <th>Docente</th>
                             <th>N° Supervisión</th>
                             <th>Fecha Supervisión</th>
                             <th class="text-center">Acciones</th>
@@ -104,7 +137,6 @@
                             <tr>
                                 <td>{{ $detalle->IdSupervisionDetalle }}</td>
                                 <td>
-                                    Docente:
                                     {{ optional($detalle->supervision->docente->persona)->cNombre ?? '---' }}
                                     {{ optional($detalle->supervision->docente->persona)->cApellido ?? '' }}
                                 </td>
@@ -115,18 +147,6 @@
                                        class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil-square"></i> Editar
                                     </a>
-                                    <!--
-                                    <form action="{{ route('detalle_supervisiones.destroy', $detalle->IdSupervisionDetalle) }}" 
-                                          method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                onclick="return confirm('¿Eliminar este detalle?')" 
-                                                class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                    -->
                                 </td>
                             </tr>
                         @empty
@@ -151,6 +171,8 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
+
 
 
 

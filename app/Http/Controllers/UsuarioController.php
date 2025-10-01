@@ -10,10 +10,29 @@ use Illuminate\Support\Facades\Hash;
 
 class UsuarioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = Usuario::with('persona', 'roles')->get();
-        return view('usuarios.index', compact('usuarios'));
+        // Acepta varios nombres de input por compatibilidad
+        $term = $request->input('search') ?? $request->input('dni') ?? null;
+
+        $usuarios = Usuario::with('persona', 'roles')
+            ->when($term, function ($query, $term) {
+                $query->where(function ($q) use ($term) {
+                    // Buscar en la relación persona
+                    $q->whereHas('persona', function ($q2) use ($term) {
+                        $q2->where('cDNI', 'like', "%{$term}%")
+                           ->orWhere('cNombre', 'like', "%{$term}%")
+                           ->orWhere('cApellido', 'like', "%{$term}%");
+                    })
+                    // También buscar por nombre de usuario por si lo desean
+                    ->orWhere('cUsuario', 'like', "%{$term}%");
+                });
+            })
+            ->orderBy('IdUsuario', 'desc')
+            ->paginate(10)
+            ->appends($request->only('search', 'dni'));
+
+        return view('usuarios.index', compact('usuarios', 'term'));
     }
 
     public function create()
@@ -105,6 +124,8 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente.');
     }
 }
+
+
 
 
 

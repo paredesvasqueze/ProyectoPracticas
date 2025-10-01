@@ -10,22 +10,19 @@ use App\Models\Constante;
 class DocenteController extends Controller
 {
     /**
-     * Listar todos los docentes con opción de búsqueda por DNI o nombre.
+     * Listar todos los docentes con opción de búsqueda por DNI, nombre o apellido.
      */
     public function index(Request $request)
     {
         $query = Docente::with('persona');
 
-        if ($request->filled('dni')) {
-            $query->whereHas('persona', function ($q) use ($request) {
-                $q->where('cDNI', 'like', '%' . $request->dni . '%');
-            });
-        }
+        if ($request->filled('search')) {
+            $search = $request->search;
 
-        if ($request->filled('nombre')) {
-            $query->whereHas('persona', function ($q) use ($request) {
-                $q->where('cNombre', 'like', '%' . $request->nombre . '%')
-                  ->orWhere('cApellido', 'like', '%' . $request->nombre . '%');
+            $query->whereHas('persona', function ($q) use ($search) {
+                $q->where('cDNI', 'like', "%{$search}%")
+                  ->orWhere('cNombre', 'like', "%{$search}%")
+                  ->orWhere('cApellido', 'like', "%{$search}%");
             });
         }
 
@@ -132,5 +129,6 @@ class DocenteController extends Controller
         return redirect()->route('docentes.index')->with('success', 'Docente eliminado correctamente.');
     }
 }
+
 
 

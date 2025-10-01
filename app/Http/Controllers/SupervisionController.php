@@ -10,13 +10,31 @@ use Illuminate\Http\Request;
 class SupervisionController extends Controller
 {
     /**
-     * Listar todas las supervisiones
+     * Listar todas las supervisiones con opción de búsqueda por nombre del docente o número de carta
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Incluimos las relaciones Docente->Persona y CartaPresentacion
-        $supervisiones = Supervision::with(['docente.persona', 'cartaPresentacion'])->get();
-        return view('supervisiones.index', compact('supervisiones')); 
+        $query = Supervision::with(['docente.persona', 'cartaPresentacion']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function($q) use ($search) {
+                // Buscar por nombre o apellido del docente
+                $q->whereHas('docente.persona', function($q2) use ($search) {
+                    $q2->where('cNombre', 'like', "%{$search}%")
+                       ->orWhere('cApellido', 'like', "%{$search}%");
+                })
+                // O por número de carta
+                ->orWhereHas('cartaPresentacion', function($q3) use ($search) {
+                    $q3->where('nNroCarta', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $supervisiones = $query->get();
+
+        return view('supervisiones.index', compact('supervisiones'));
     }
 
     /**
@@ -24,11 +42,10 @@ class SupervisionController extends Controller
      */
     public function create()
     {
-        // Traemos docentes con su persona
         $docentes = Docente::with('persona')->get();
         $cartas = CartaPresentacion::all();
 
-        return view('supervisiones.create', compact('docentes', 'cartas')); 
+        return view('supervisiones.create', compact('docentes', 'cartas'));
     }
 
     /**
@@ -65,7 +82,7 @@ class SupervisionController extends Controller
     {
         $supervision = Supervision::with(['docente.persona', 'cartaPresentacion'])
                                   ->findOrFail($id);
-        return view('supervisiones.show', compact('supervision')); 
+        return view('supervisiones.show', compact('supervision'));
     }
 
     /**
@@ -77,7 +94,7 @@ class SupervisionController extends Controller
         $docentes = Docente::with('persona')->get();
         $cartas = CartaPresentacion::all();
 
-        return view('supervisiones.edit', compact('supervision', 'docentes', 'cartas')); 
+        return view('supervisiones.edit', compact('supervision', 'docentes', 'cartas'));
     }
 
     /**
@@ -120,6 +137,7 @@ class SupervisionController extends Controller
                          ->with('success', 'Supervisión eliminada correctamente.');
     }
 }
+
 
 
 

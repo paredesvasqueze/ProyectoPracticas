@@ -54,6 +54,12 @@
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
                 </a>
             </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documentos.index') }}">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
+                </a>
+            </li>
         </ul>
     </div>
 

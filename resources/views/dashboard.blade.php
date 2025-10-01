@@ -68,6 +68,13 @@
                 </a>
             </li>
 
+            <!-- Módulo de documentos -->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documentos.index') }}">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -101,8 +108,8 @@
                 <h5 class="card-title">Panel de Control</h5>
                 <p class="card-text">
                     Aquí podrás gestionar a los usuarios, registrar los trámites de cartas de presentación, 
-                    administrar las empresas vinculadas, registrar estudiantes, gestionar docentes, manejar supervisiones 
-                    y revisar los detalles de supervisión.
+                    administrar las empresas vinculadas, registrar estudiantes, gestionar docentes, manejar supervisiones, 
+                    revisar los detalles de supervisión y administrar los documentos cargados en el sistema.
                 </p>
             </div>
         </div>
@@ -112,6 +119,7 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+
 
 
 

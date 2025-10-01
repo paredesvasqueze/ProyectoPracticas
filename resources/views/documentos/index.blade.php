@@ -1,3 +1,4 @@
+{{-- resources/views/documentos/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -11,63 +12,48 @@
         </div>
 
         <ul class="nav flex-column mb-4">
-            <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('usuarios.index') }}">
                     <i class="bi bi-people-fill me-2"></i> Gestionar Usuarios
                 </a>
             </li>
-
-            <!-- Módulo de trámites -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('cartas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('cartas.index') }}">
                     <i class="bi bi-file-earmark-text-fill me-2"></i> Gestionar Trámites
                 </a>
             </li>
-
-            <!-- Módulo de empresas -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('empresas*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('empresas.index') }}">
                     <i class="bi bi-building me-2"></i> Gestionar Empresas
                 </a>
             </li>
-
-            <!-- Módulo de estudiantes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('estudiantes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('estudiantes.index') }}">
                     <i class="bi bi-mortarboard-fill me-2"></i> Gestionar Estudiantes
                 </a>
             </li>
-
-            <!-- Módulo de docentes -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('docentes*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('docentes.index') }}">
                     <i class="bi bi-person-badge-fill me-2"></i> Gestionar Docentes
                 </a>
             </li>
-
-            <!-- Módulo de supervisiones -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('supervisiones*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('supervisiones.index') }}">
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
-
-            <!-- Módulo de detalle de supervisión -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
-                href="{{ route('detalle_supervisiones.index') }}">
+                   href="{{ route('detalle_supervisiones.index') }}">
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
                 </a>
             </li>
-
-            <!-- Módulo de documentos -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('documentos.index') }}">
@@ -75,11 +61,11 @@
                 </a>
             </li>
         </ul>
-        
     </div>
 
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
+
         <!-- Usuario arriba a la derecha -->
         <div class="d-flex justify-content-end mb-3">
             <div class="text-end">
@@ -97,88 +83,78 @@
             </div>
         </div>
 
-        <!-- Título y botón -->
-        <h2 class="mb-4">Gestión de Usuarios</h2>
-        <a href="{{ route('usuarios.create') }}" class="btn btn-success mb-3">
-            <i class="bi bi-person-plus"></i> Nuevo Usuario
+        <h2 class="mb-4">Gestión de Documentos</h2>
+        <a href="{{ route('documentos.create') }}" class="btn btn-success mb-3">
+            <i class="bi bi-plus-circle"></i> Nuevo Documento
         </a>
 
-        <!-- Buscador por DNI -->
-        <form action="{{ route('usuarios.index') }}" method="GET" class="mb-3 d-flex">
-            <input type="text" name="dni" class="form-control me-2" 
-                   placeholder="Buscar por DNI" value="{{ request('dni') }}">
+        <!-- Formulario de búsqueda -->
+        <form action="{{ route('documentos.index') }}" method="GET" class="mb-3 d-flex">
+            <input type="text" name="search" class="form-control me-2" 
+                placeholder="Buscar por número o tipo" value="{{ request('search') }}">
             <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('usuarios.index') }}" class="btn btn-secondary">Limpiar</a>
+            <a href="{{ route('documentos.index') }}" class="btn btn-secondary">Limpiar</a>
         </form>
 
-        <!-- Tabla de usuarios -->
+        <!-- Tabla de documentos -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <table class="table table-striped table-bordered align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>DNI</th>
-                            <th>Correo</th>
-                            <th>Rol</th>
+                            <th>Nro Documento</th>
+                            <th>Tipo</th>
+                            <th>Fecha Documento</th>
+                            <th>Fecha Entrega</th>
+                            <th>Archivo</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($usuarios as $usuario)
-                            <tr>
-                                <td>{{ $usuario->IdUsuario }}</td>
-                                <td>{{ $usuario->cUsuario }}</td>
-                                <td>{{ $usuario->persona->cNombre ?? '' }}</td>
-                                <td>{{ $usuario->persona->cApellido ?? '' }}</td>
-                                <td>{{ $usuario->persona->cDNI ?? '' }}</td>
-                                <td>{{ $usuario->persona->cCorreo ?? '' }}</td>
-                                <td>
-                                    @if($usuario->roles->count())
-                                        {{ $usuario->roles->pluck('cNombreRol')->join(', ') }}
-                                    @else
-                                        Sin rol
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ route('usuarios.edit', $usuario) }}" 
-                                       class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil-square"></i> Editar
+                        @forelse ($documentos ?? [] as $doc)
+                        <tr>
+                            <td>{{ $doc->IdDocumento }}</td>
+                            <td>{{ $doc->cNroDocumento }}</td>
+                            <td>{{ $doc->nombreTipoDocumento }}</td> <!-- AQUÍ MUESTRA EL NOMBRE -->
+                            <td>{{ $doc->dFechaDocumento }}</td>
+                            <td>{{ $doc->dFechaEntrega }}</td>
+                            <td>
+                                @if($doc->eDocumentoAdjunto)
+                                    <a href="{{ asset('storage/'.$doc->eDocumentoAdjunto) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-file-earmark-arrow-down"></i> Ver
                                     </a>
-                                    <form action="{{ route('usuarios.destroy', $usuario) }}" 
-                                          method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                onclick="return confirm('¿Seguro de eliminar este usuario?')" 
-                                                class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
+                                @else
+                                    <span class="text-muted">Sin archivo</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ route('documentos.edit', $doc->IdDocumento) }}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                                <form action="{{ route('documentos.destroy', $doc->IdDocumento) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" onclick="return confirm('¿Seguro de eliminar este documento?')" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
                         @empty
-                            <tr>
-                                <td colspan="8" class="text-center">No hay usuarios registrados.</td>
-                            </tr>
+                        <tr>
+                            <td colspan="7" class="text-center">No hay documentos registrados.</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
-
-
-
-
-
-
 
