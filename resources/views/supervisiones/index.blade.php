@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex" style="min-height: 100vh;">
 
-    <!-- Sidebar fijo -->
+    <!-- Sidebar -->
     <div class="text-white p-3 d-flex flex-column position-fixed" 
          style="width: 250px; height: 100vh; background-color: #99001F;">
         <div class="text-center mb-4">
@@ -63,7 +63,7 @@
             <!-- Módulo de detalle de supervisión -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
-                   href="{{ route('detalle_supervisiones.index') }}">
+                href="{{ route('detalle_supervisiones.index') }}">
                     <i class="bi bi-journal-text me-2"></i> Supervisión Detalle
                 </a>
             </li>
@@ -75,43 +75,24 @@
                     <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
                 </a>
             </li>
-        </ul>
 
+            <!--Módulo de documento de supervision-->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documento_supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documento_supervisiones.index') }}">
+                    <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Supervisión
+                </a>
+            </li>
     </div>
+
+    
 
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
-
-        <!-- Usuario arriba a la derecha -->
-        <div class="d-flex justify-content-end mb-3">
-            <div class="text-end">
-                <small>
-                    Usuario: {{ Auth::user()->persona->cNombre ?? '' }} {{ Auth::user()->persona->cApellido ?? '' }}
-                </small>
-                <div class="mt-2">
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Título y botón -->
         <h2 class="mb-4">Gestión de Supervisiones</h2>
         <a href="{{ route('supervisiones.create') }}" class="btn btn-success mb-3">
             <i class="bi bi-plus-circle"></i> Nueva Supervisión
         </a>
-
-        <!-- Formulario de búsqueda único -->
-        <form action="{{ route('supervisiones.index') }}" method="GET" class="mb-3 d-flex">
-            <input type="text" name="search" class="form-control me-2" 
-                placeholder="Buscar por nombre del docente o número de carta" value="{{ request('search') }}">
-            <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('supervisiones.index') }}" class="btn btn-secondary">Limpiar</a>
-        </form>
 
         <!-- Tabla de supervisiones -->
         <div class="card shadow-sm">
@@ -126,6 +107,7 @@
                             <th>Fecha Inicio</th>
                             <th>Fecha Fin</th>
                             <th>Horas</th>
+                            <th class="text-center">Detalle</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -133,52 +115,81 @@
                         @forelse ($supervisiones as $supervision)
                             <tr>
                                 <td>{{ $supervision->IdSupervision }}</td>
-                                <td>
-                                    @if($supervision->docente && $supervision->docente->persona)
-                                        {{ $supervision->docente->persona->cNombre }} {{ $supervision->docente->persona->cApellido }}
-                                    @else
-                                        Sin asignar
-                                    @endif
-                                </td>
+                                <td>{{ $supervision->docente->persona->cNombre ?? '' }} {{ $supervision->docente->persona->cApellido ?? '' }}</td>
                                 <td>{{ $supervision->cartaPresentacion->nNroCarta ?? 'N/A' }}</td>
                                 <td>{{ $supervision->nNota ?? '-' }}</td>
                                 <td>{{ $supervision->dFechaInicio }}</td>
                                 <td>{{ $supervision->dFechaFin }}</td>
                                 <td>{{ $supervision->nHoras }}</td>
+                                <!-- Botón ver detalle -->
                                 <td class="text-center">
-                                    <a href="{{ route('supervisiones.edit', $supervision) }}" 
-                                       class="btn btn-warning btn-sm">
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detalleModal{{ $supervision->IdSupervision }}">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </button>
+
+                                    <!-- Modal Detalle -->
+                                    <div class="modal fade" id="detalleModal{{ $supervision->IdSupervision }}" tabindex="-1" aria-labelledby="detalleModalLabel{{ $supervision->IdSupervision }}" aria-hidden="true">
+                                      <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                          <div class="modal-header">
+                                            <h5 class="modal-title" id="detalleModalLabel{{ $supervision->IdSupervision }}">
+                                                Detalles de Supervisión #{{ $supervision->IdSupervision }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                          </div>
+                                          <div class="modal-body">
+                                            <table class="table table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Número de Supervisión</th>
+                                                        <th>Fecha de Supervisión</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($supervision->detalles as $detalle)
+                                                        <tr>
+                                                            <td>{{ $detalle->nNroSupervision }}</td>
+                                                            <td>{{ $detalle->dFechaSupervision }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="2" class="text-center">No hay detalles registrados</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                </td>
+                                <!-- Acciones -->
+                                <td class="text-center">
+                                    <a href="{{ route('supervisiones.edit', $supervision) }}" class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil-square"></i> Editar
                                     </a>
-                                    <!--
-                                    <form action="{{ route('supervisiones.destroy', $supervision) }}" 
-                                          method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                onclick="return confirm('¿Seguro de eliminar esta supervisión?')" 
-                                                class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                    -->
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">No hay supervisiones registradas.</td>
+                                <td colspan="9" class="text-center">No hay supervisiones registradas.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 </div>
 
-{{-- Bootstrap Icons --}}
+{{-- Bootstrap JS y Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
+
+
 
 

@@ -60,7 +60,7 @@
                     <i class="bi bi-journal-check me-2"></i> Gestionar Supervisiones
                 </a>
             </li>
-            
+
             <!-- Módulo de detalle de supervisión -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('detalle_supervisiones*') ? 'active fw-bold' : '' }}" 
@@ -74,6 +74,14 @@
                 <a class="nav-link text-white {{ request()->is('documentos*') ? 'active fw-bold' : '' }}" 
                    href="{{ route('documentos.index') }}">
                     <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
+                </a>
+            </li>
+
+            <!--Módulo de documento de supervision-->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documento_supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documento_supervisiones.index') }}">
+                    <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Supervisión
                 </a>
             </li>
         </ul>

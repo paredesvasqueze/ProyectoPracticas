@@ -1,17 +1,18 @@
-{{-- resources/views/detalle_supervisiones/create.blade.php --}}
+{{-- resources/views/documento_supervisiones/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
 <div class="d-flex" style="min-height: 100vh;">
 
     <!-- Sidebar fijo -->
-    <div class="text-white p-3 d-flex flex-column position-fixed"
+    <div class="text-white p-3 d-flex flex-column position-fixed" 
          style="width: 250px; height: 100vh; background-color: #99001F;">
         <div class="text-center mb-4">
             <h4 class="fw-bold">Sistema EFSRT</h4>
         </div>
 
         <ul class="nav flex-column mb-4">
+            
             <!-- Gestión de Usuarios -->
             <li class="nav-item mb-2">
                 <a class="nav-link text-white {{ request()->is('usuarios*') ? 'active fw-bold' : '' }}" 
@@ -83,73 +84,91 @@
                     <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Supervisión
                 </a>
             </li>
+            
         </ul>
     </div>
 
     <!-- Contenido principal -->
     <div class="flex-grow-1 p-4" style="margin-left: 250px;">
-        <!-- Usuario arriba a la derecha -->
-        <div class="d-flex justify-content-end mb-3">
-            <div class="text-end">
-                <small>
-                    Usuario: {{ Auth::user()->persona->cNombre ?? '' }} {{ Auth::user()->persona->cApellido ?? '' }}
-                </small>
-                <div class="mt-2">
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <div class="d-flex justify-content-between mb-3">
+            <h2>Registrar Documento de Supervisión</h2>
+            <a href="{{ route('documento_supervisiones.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
         </div>
 
-        <!-- Encabezado -->
-        <h2 class="mb-4">Nuevo Detalle de Supervisión</h2>
-
-        <!-- Formulario -->
         <div class="card shadow-sm">
             <div class="card-body">
-                <form action="{{ route('detalle_supervisiones.store') }}" method="POST">
+
+                {{-- Mensajes de error --}}
+                @if ($errors->any())
+                    <div class="alert alert-warning">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if (session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                <form action="{{ route('documento_supervisiones.store') }}" method="POST">
                     @csrf
 
-                    <!-- Supervisión -->
-                    <div class="mb-3">
-                        <label for="IdSupervision" class="form-label">Supervisión</label>
-                        <select name="IdSupervision" id="IdSupervision" class="form-select" required>
-                            <option value="">-- Seleccione Supervisión --</option>
-                            @foreach($supervisiones as $supervision)
-                                <option value="{{ $supervision->IdSupervision }}">
-                                    Docente: {{ optional($supervision->docente->persona)->cNombre }} {{ optional($supervision->docente->persona)->cApellido }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Registro</label>
+                            <input type="date" name="dFechaRegistro" class="form-control" value="{{ old('dFechaRegistro') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Supervisión</label>
+                            <input type="date" name="dFechaSupervision" class="form-control" value="{{ old('dFechaSupervision') }}" required>
+                        </div>
                     </div>
 
-                    <!-- Número de Supervisión -->
-                    <div class="mb-3">
-                        <label for="nNroSupervision" class="form-label">N° Supervisión</label>
-                        <input type="text" name="nNroSupervision" id="nNroSupervision" 
-                               class="form-control" maxlength="20" required>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Número de Supervisión</label>
+                            <input type="text" name="nNroSupervision" class="form-control" value="{{ old('nNroSupervision') }}" required maxlength="20">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Documento</label>
+                            <select name="IdDocumento" class="form-select" required>
+                                <option value="">--Seleccionar Documento--</option>
+                                @foreach($documentos as $doc)
+                                    <option value="{{ $doc->IdDocumento }}" {{ old('IdDocumento') == $doc->IdDocumento ? 'selected' : '' }}>
+                                        {{ $doc->cNroDocumento }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Fecha Supervisión -->
-                    <div class="mb-3">
-                        <label for="dFechaSupervision" class="form-label">Fecha Supervisión</label>
-                        <input type="date" name="dFechaSupervision" id="dFechaSupervision" 
-                               class="form-control" required>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Supervisión</label>
+                            <select name="IdSupervision" class="form-select" required>
+                                <option value="">--Seleccionar Supervisión--</option>
+                                @foreach($supervisiones as $sup)
+                                    <option value="{{ $sup->IdSupervision }}" {{ old('IdSupervision') == $sup->IdSupervision ? 'selected' : '' }}>
+                                        Supervisión #{{ $sup->IdSupervision }} - Docente #{{ $sup->IdDocente }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('detalle_supervisiones.index') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Volver
-                        </a>
+                    <div class="text-end">
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-save"></i> Guardar
+                            <i class="bi bi-save"></i> Guardar Documento Supervisión
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -159,3 +178,4 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
+

@@ -10,9 +10,10 @@ use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SupervisionController; 
 use App\Http\Controllers\DetalleSupervisionController;
 use App\Http\Controllers\DocumentoController;
+use App\Http\Controllers\DocumentoSupervisionController; 
 
 // ===============================
-// 🌐 Rutas públicas
+// Rutas públicas
 // ===============================
 Route::get('/', function () {
     return redirect()->route('login');
@@ -23,7 +24,7 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
 // ===============================
-// 🔐 Rutas protegidas con middleware auth
+// Rutas protegidas con middleware auth
 // ===============================
 Route::middleware(['auth'])->group(function () {
 
@@ -34,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // ===============================
-    // 📌 Gestión de módulos
+    // Gestión de módulos
     // ===============================
 
     // Usuarios
@@ -58,9 +59,13 @@ Route::middleware(['auth'])->group(function () {
     // Detalle Supervisiones
     Route::resource('detalle_supervisiones', DetalleSupervisionController::class);
 
-    //Documentos
+    // Documentos
     Route::resource('documentos', DocumentoController::class);
+
+    // Documento Supervisiones
+    Route::resource('documento_supervisiones', DocumentoSupervisionController::class); 
 });
+
 
 
 

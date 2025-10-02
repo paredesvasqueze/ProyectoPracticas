@@ -75,6 +75,15 @@
                     <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gestionar Documentos
                 </a>
             </li>
+
+            <!--Módulo de documento de supervision-->
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('documento_supervisiones*') ? 'active fw-bold' : '' }}" 
+                   href="{{ route('documento_supervisiones.index') }}">
+                    <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Supervisión
+                </a>
+            </li>
+
         </ul>
     </div>
 

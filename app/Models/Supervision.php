@@ -49,7 +49,28 @@ class Supervision extends Model
     {
         return $this->hasMany(SupervisionDetalle::class, 'IdSupervision', 'IdSupervision');
     }
+
+    /**
+     * Crear supervisión con varios detalles de forma masiva
+     */
+    public static function crearConDetalles(array $data, array $detallesData)
+    {
+        // Crear supervisión principal
+        $supervision = self::create($data);
+
+        // Crear cada detalle
+        foreach ($detallesData as $detalle) {
+            $supervision->detalles()->create([
+                'nNroSupervision' => $detalle['nNroSupervision'],
+                'dFechaSupervision' => $detalle['dFechaSupervision'],
+            ]);
+        }
+
+        return $supervision;
+    }
 }
+
+
 
 
 

@@ -1,4 +1,3 @@
-{{-- resources/views/estudiantes/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -84,7 +83,6 @@
                 </a>
             </li>
         </ul>
-
     </div>
 
     <!-- Contenido principal -->
@@ -107,93 +105,82 @@
             </div>
         </div>
 
-        <h2 class="mb-4">Gestión de Estudiantes</h2>
-
-        <!-- Botón para crear nuevo estudiante -->
-        <a href="{{ route('estudiantes.create') }}" class="btn btn-success mb-3">
-            <i class="bi bi-plus-circle"></i> Nuevo Estudiante
+        <h2 class="mb-4">Gestión de Documentos de Supervisión</h2>
+        <a href="{{ route('documento_supervisiones.create') }}" class="btn btn-success mb-3">
+            <i class="bi bi-plus-circle"></i> Nuevo Documento Supervisión
         </a>
 
-        <!-- Mensaje de éxito -->
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        <!-- Formulario de búsqueda por DNI -->
-        <form action="{{ route('estudiantes.index') }}" method="GET" class="mb-3 d-flex">
-            <input type="text" name="dni" class="form-control me-2" placeholder="Buscar por DNI" value="{{ request('dni') }}">
+        <!-- Formulario búsqueda -->
+        <form action="{{ route('documento_supervisiones.index') }}" method="GET" class="mb-3 d-flex">
+            <input type="text" name="search" class="form-control me-2" 
+                placeholder="Buscar por nro supervisión o documento" value="{{ request('search') }}">
             <button type="submit" class="btn btn-primary me-2">Buscar</button>
-            <a href="{{ route('estudiantes.index') }}" class="btn btn-secondary">Limpiar</a>
+            <a href="{{ route('documento_supervisiones.index') }}" class="btn btn-secondary">Limpiar</a>
         </form>
 
+        <!-- Tabla -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <table class="table table-striped table-bordered align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>DNI</th>
-                            <th>Correo</th>
-                            <th>Celular</th>
-                            <th>Programa de Estudios</th>
-                            <th>Plan de Estudio</th>
-                            <th>Módulo Formativo</th>
-                            <th>Turno</th>
+                            <th>Fecha Registro</th>
+                            <th>Fecha Supervisión</th>
+                            <th>Nro Supervisión</th>
+                            <th>Documento</th>
+                            <th>Supervisión</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($estudiantes as $estudiante)
-                            <tr>
-                                <td>{{ $estudiante->IdEstudiante }}</td>
-                                <td>{{ $estudiante->persona->cNombre ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cApellido ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cDNI ?? '' }}</td>
-                                <td>{{ $estudiante->persona->cCorreo ?? '' }}</td>
-                                <td>{{ $estudiante->nCelular }}</td>
-
-                                <!-- Mostrar textos desde las relaciones -->
-                                <td>{{ $estudiante->programa->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->plan->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->modulo->nConstDescripcion ?? '' }}</td>
-                                <td>{{ $estudiante->turno->nConstDescripcion ?? '' }}</td>
-
-                                <td class="text-center">
-                                    <a href="{{ route('estudiantes.edit', $estudiante->IdEstudiante) }}" 
-                                       class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil-square"></i> Editar
-                                    </a>
-                                    <!--
-                                    <form action="{{ route('estudiantes.destroy', $estudiante->IdEstudiante) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                    -->
-                                </td>
-                            </tr>
+                        @forelse ($documento_supervisiones as $ds)
+                        <tr>
+                            <td>{{ $ds->IdDocumentoSupervision }}</td>
+                            <td>{{ $ds->dFechaRegistro }}</td>
+                            <td>{{ $ds->dFechaSupervision }}</td>
+                            <td>{{ $ds->nNroSupervision }}</td>
+                            <td>
+                                {{ $ds->documento->cNroDocumento ?? '-' }}
+                            </td>
+                            <td>
+                                Supervisión #{{ $ds->supervision->IdSupervision ?? '-' }}
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ route('documento_supervisiones.show', $ds->IdDocumentoSupervision) }}" class="btn btn-info btn-sm">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                                <a href="{{ route('documento_supervisiones.edit', $ds->IdDocumentoSupervision) }}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                                <form action="{{ route('documento_supervisiones.destroy', $ds->IdDocumentoSupervision) }}" 
+                                      method="POST" class="d-inline"
+                                      onsubmit="return confirm('¿Seguro de eliminar este registro?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
                         @empty
-                            <tr>
-                                <td colspan="11" class="text-center">No hay estudiantes registrados.</td>
-                            </tr>
+                        <tr>
+                            <td colspan="7" class="text-center">No hay documentos de supervisión registrados.</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
+
+                <!-- Paginación -->
+                <div class="d-flex justify-content-center">
+                    {{ $documento_supervisiones->links() }}
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
-
-
-
-
-

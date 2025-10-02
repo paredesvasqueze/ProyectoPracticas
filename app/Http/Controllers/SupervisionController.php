@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class SupervisionController extends Controller
 {
     /**
-     * Listar todas las supervisiones con opción de búsqueda por nombre del docente o número de carta
+     * Listar todas las supervisiones con opción de búsqueda
      */
     public function index(Request $request)
     {
@@ -20,19 +20,17 @@ class SupervisionController extends Controller
             $search = $request->search;
 
             $query->where(function($q) use ($search) {
-                // Buscar por nombre o apellido del docente
                 $q->whereHas('docente.persona', function($q2) use ($search) {
                     $q2->where('cNombre', 'like', "%{$search}%")
                        ->orWhere('cApellido', 'like', "%{$search}%");
                 })
-                // O por número de carta
                 ->orWhereHas('cartaPresentacion', function($q3) use ($search) {
                     $q3->where('nNroCarta', 'like', "%{$search}%");
                 });
             });
         }
 
-        $supervisiones = $query->get();
+        $supervisiones = $query->orderBy('IdSupervision', 'desc')->get();
 
         return view('supervisiones.index', compact('supervisiones'));
     }
@@ -43,13 +41,17 @@ class SupervisionController extends Controller
     public function create()
     {
         $docentes = Docente::with('persona')->get();
-        $cartas = CartaPresentacion::all();
+        $cartas = CartaPresentacion::with('estudiante.persona')->get();
 
-        return view('supervisiones.create', compact('docentes', 'cartas'));
+        $supervisiones = Supervision::with(['docente.persona', 'cartaPresentacion'])
+                                    ->orderBy('IdSupervision', 'desc')
+                                    ->get();
+
+        return view('supervisiones.create', compact('docentes', 'cartas', 'supervisiones'));
     }
 
     /**
-     * Guardar nueva supervisión
+     * Guardar nueva supervisión con detalles
      */
     public function store(Request $request)
     {
@@ -60,9 +62,15 @@ class SupervisionController extends Controller
             'dFechaInicio' => 'required|date',
             'dFechaFin' => 'required|date|after_or_equal:dFechaInicio',
             'nHoras' => 'required|integer|min:1',
+
+            // Validación de detalles como arreglo
+            'detalles' => 'required|array|min:1',
+            'detalles.*.nNroSupervision' => 'required|integer|min:1',
+            'detalles.*.dFechaSupervision' => 'required|date',
         ]);
 
-        Supervision::create([
+        // Crear supervisión principal
+        $supervision = Supervision::create([
             'IdDocente' => $request->IdDocente,
             'IdCartaPresentacion' => $request->IdCartaPresentacion,
             'nNota' => $request->nNota,
@@ -71,7 +79,15 @@ class SupervisionController extends Controller
             'nHoras' => $request->nHoras,
         ]);
 
-        return redirect()->route('supervisiones.index')
+        // Crear detalles de supervisión
+        foreach ($request->detalles as $detalle) {
+            $supervision->detalles()->create([
+                'nNroSupervision' => $detalle['nNroSupervision'],
+                'dFechaSupervision' => $detalle['dFechaSupervision'],
+            ]);
+        }
+
+        return redirect()->route('supervisiones.create')
                          ->with('success', 'Supervisión registrada correctamente.');
     }
 
@@ -80,7 +96,7 @@ class SupervisionController extends Controller
      */
     public function show($id)
     {
-        $supervision = Supervision::with(['docente.persona', 'cartaPresentacion'])
+        $supervision = Supervision::with(['docente.persona', 'cartaPresentacion', 'detalles'])
                                   ->findOrFail($id);
         return view('supervisiones.show', compact('supervision'));
     }
@@ -90,7 +106,7 @@ class SupervisionController extends Controller
      */
     public function edit($id)
     {
-        $supervision = Supervision::findOrFail($id);
+        $supervision = Supervision::with('detalles')->findOrFail($id);
         $docentes = Docente::with('persona')->get();
         $cartas = CartaPresentacion::all();
 
@@ -98,7 +114,7 @@ class SupervisionController extends Controller
     }
 
     /**
-     * Actualizar supervisión
+     * Actualizar supervisión y detalles
      */
     public function update(Request $request, $id)
     {
@@ -109,6 +125,10 @@ class SupervisionController extends Controller
             'dFechaInicio' => 'required|date',
             'dFechaFin' => 'required|date|after_or_equal:dFechaInicio',
             'nHoras' => 'required|integer|min:1',
+
+            'detalles' => 'required|array|min:1',
+            'detalles.*.nNroSupervision' => 'required|integer|min:1',
+            'detalles.*.dFechaSupervision' => 'required|date',
         ]);
 
         $supervision = Supervision::findOrFail($id);
@@ -121,22 +141,37 @@ class SupervisionController extends Controller
             'nHoras' => $request->nHoras,
         ]);
 
-        return redirect()->route('supervisiones.index') 
+        // Actualizar detalles: primero eliminamos los antiguos
+        $supervision->detalles()->delete();
+
+        // Insertamos los nuevos
+        foreach ($request->detalles as $detalle) {
+            $supervision->detalles()->create([
+                'nNroSupervision' => $detalle['nNroSupervision'],
+                'dFechaSupervision' => $detalle['dFechaSupervision'],
+            ]);
+        }
+
+        return redirect()->route('supervisiones.index')
                          ->with('success', 'Supervisión actualizada correctamente.');
     }
 
     /**
-     * Eliminar supervisión
+     * Eliminar supervisión y sus detalles
      */
     public function destroy($id)
     {
         $supervision = Supervision::findOrFail($id);
+        $supervision->detalles()->delete();
         $supervision->delete();
 
-        return redirect()->route('supervisiones.index') 
+        return redirect()->route('supervisiones.index')
                          ->with('success', 'Supervisión eliminada correctamente.');
     }
 }
+
+
+
 
 
 
