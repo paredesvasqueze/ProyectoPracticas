@@ -8,7 +8,6 @@ use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SupervisionController; 
-use App\Http\Controllers\DetalleSupervisionController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\DocumentoSupervisionController; 
 
@@ -55,9 +54,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Supervisiones
     Route::resource('supervisiones', SupervisionController::class);
-
-    // Detalle Supervisiones
-    Route::resource('detalle_supervisiones', DetalleSupervisionController::class);
 
     // Documentos
     Route::resource('documentos', DocumentoController::class);
