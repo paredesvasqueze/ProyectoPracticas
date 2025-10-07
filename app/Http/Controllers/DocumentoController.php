@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Documento;
 use App\Models\Constante;
+use App\Models\Estudiante;
+use App\Models\DocumentoSupervision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class DocumentoController extends Controller
 {
@@ -14,20 +17,24 @@ class DocumentoController extends Controller
      */
     public function index(Request $request)
     {
-        // Traer documentos junto con el nombre del tipo
-        $query = Documento::query()
-            ->leftJoin('constante', 'documento.cTipoDocumento', '=', 'constante.IdConstante')
-            ->select('documento.*', 'constante.nConstDescripcion as nombreTipoDocumento');
+        $query = Documento::with('estudiante.persona', 'tipoDocumento');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('documento.cNroDocumento', 'LIKE', "%{$search}%")
-                  ->orWhere('constante.nConstDescripcion', 'LIKE', "%{$search}%");
+                $q->where('cNroDocumento', 'LIKE', "%{$search}%")
+                  ->orWhereHas('tipoDocumento', function ($qt) use ($search) {
+                      $qt->where('nConstDescripcion', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('estudiante.persona', function ($qp) use ($search) {
+                      $qp->where('cNombre', 'LIKE', "%{$search}%")
+                         ->orWhere('cApellido', 'LIKE', "%{$search}%")
+                         ->orWhere('cDNI', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
-        $documentos = $query->orderBy('documento.IdDocumento', 'desc')->get();
+        $documentos = $query->orderBy('IdDocumento', 'desc')->get();
 
         return view('documentos.index', compact('documentos'));
     }
@@ -40,13 +47,13 @@ class DocumentoController extends Controller
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
             ->where('nConstEstado', '1')
             ->orderBy('nConstOrden')
-            ->pluck('nConstDescripcion', 'IdConstante'); // valor => texto
+            ->pluck('nConstDescripcion', 'IdConstante');
 
         return view('documentos.create', compact('tiposDocumento'));
     }
 
     /**
-     * Guardar un documento nuevo.
+     * Guardar documento nuevo.
      */
     public function store(Request $request)
     {
@@ -55,23 +62,65 @@ class DocumentoController extends Controller
             'dFechaDocumento'   => 'required|date',
             'cTipoDocumento'    => 'required|integer|exists:constante,IdConstante',
             'dFechaEntrega'     => 'nullable|date',
+            'IdEstudiante'      => 'required|integer|exists:estudiante,IdEstudiante',
             'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:5120',
         ]);
 
-        $rutaArchivo = null;
-        if ($request->hasFile('eDocumentoAdjunto')) {
-            $rutaArchivo = $request->file('eDocumentoAdjunto')->store('documentos', 'public');
+        DB::beginTransaction();
+
+        try {
+            // Guardar archivo si existe
+            $rutaArchivo = $request->hasFile('eDocumentoAdjunto')
+                ? $request->file('eDocumentoAdjunto')->store('documentos', 'public')
+                : null;
+
+            // Crear documento
+            $documento = Documento::create([
+                'cNroDocumento'     => $request->cNroDocumento,
+                'dFechaDocumento'   => $request->dFechaDocumento,
+                'cTipoDocumento'    => $request->cTipoDocumento,
+                'dFechaEntrega'     => $request->dFechaEntrega,
+                'eDocumentoAdjunto' => $rutaArchivo,
+                'IdEstudiante'      => $request->IdEstudiante,
+            ]);
+
+            $tipoDescripcion = $documento->tipoDocumento->nConstDescripcion ?? '';
+
+            // INFORME A SECRETARÍA ACADÉMICA
+            if (stripos($tipoDescripcion, 'SECRETARÍA') !== false && $request->has('secretaria')) {
+                foreach ($request->secretaria as $fila) {
+                    DocumentoSupervision::create([
+                        'IdDocumento'    => $documento->IdDocumento,
+                        'dFechaRegistro' => now(),
+                        'nro_secuencial' => $fila['nro_secuencial'] ?? null,
+                        'programa'       => $fila['programa'] ?? null,
+                        'nombre'         => $fila['nombre'] ?? null,
+                        'dni'            => $fila['dni'] ?? null,
+                        'modulo'         => $fila['modulo'] ?? null,
+                    ]);
+                }
+            }
+
+            // MEMORÁNDUM A COORDINACIÓN
+            elseif (stripos($tipoDescripcion, 'MEMORÁNDUM') !== false && $request->has('memorandum')) {
+                foreach ($request->memorandum as $fila) {
+                    DocumentoSupervision::create([
+                        'IdDocumento'      => $documento->IdDocumento,
+                        'dFechaRegistro'   => now(),
+                        'nro_expediente'   => $fila['nro_expediente'] ?? null,
+                        'programa'         => $fila['programa'] ?? null,
+                        'nombre'           => $fila['nombre'] ?? null,
+                        'centro_practicas' => $fila['centro_practicas'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('documentos.index')->with('success', 'Documento registrado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al registrar el documento: ' . $e->getMessage());
         }
-
-        Documento::create([
-            'cNroDocumento'     => $request->cNroDocumento,
-            'dFechaDocumento'   => $request->dFechaDocumento,
-            'cTipoDocumento'    => $request->cTipoDocumento, // se guarda IdConstante
-            'dFechaEntrega'     => $request->dFechaEntrega,
-            'eDocumentoAdjunto' => $rutaArchivo,
-        ]);
-
-        return redirect()->route('documentos.index')->with('success', 'Documento registrado correctamente.');
     }
 
     /**
@@ -79,7 +128,7 @@ class DocumentoController extends Controller
      */
     public function edit($id)
     {
-        $documento = Documento::findOrFail($id);
+        $documento = Documento::with('estudiante.persona')->findOrFail($id);
 
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
             ->where('nConstEstado', '1')
@@ -99,6 +148,7 @@ class DocumentoController extends Controller
             'dFechaDocumento'   => 'required|date',
             'cTipoDocumento'    => 'required|integer|exists:constante,IdConstante',
             'dFechaEntrega'     => 'nullable|date',
+            'IdEstudiante'      => 'required|integer|exists:estudiante,IdEstudiante',
             'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:5120',
         ]);
 
@@ -117,6 +167,7 @@ class DocumentoController extends Controller
             'cTipoDocumento'    => $request->cTipoDocumento,
             'dFechaEntrega'     => $request->dFechaEntrega,
             'eDocumentoAdjunto' => $documento->eDocumentoAdjunto,
+            'IdEstudiante'      => $request->IdEstudiante,
         ]);
 
         return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
@@ -137,7 +188,45 @@ class DocumentoController extends Controller
 
         return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
     }
+
+    /**
+     * Buscar estudiantes/personas (AJAX) para autocompletar.
+     */
+    public function buscarPersona(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        $resultados = Estudiante::with('persona', 'programa', 'modulo')
+            ->whereHas('persona', function ($q) use ($term) {
+                $q->where('cNombre', 'LIKE', "%{$term}%")
+                  ->orWhere('cApellido', 'LIKE', "%{$term}%")
+                  ->orWhere('cDNI', 'LIKE', "%{$term}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($est) {
+                return [
+                    'id'               => $est->IdEstudiante,
+                    'nombre'           => $est->nombre_completo,
+                    'dni'              => $est->dni,
+                    'programa'         => $est->programa_nombre,
+                    'modulo'           => $est->modulo_nombre,
+                    'nro_expediente'   => $est->nro_expediente,
+                    'centro_practicas' => $est->centro_practicas,
+                    'text'             => $est->nombre_completo . ' (' . $est->dni . ')',
+                ];
+            });
+
+        return response()->json($resultados);
+    }
 }
+
+
+
+
+
+
+
 
 
 

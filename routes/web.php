@@ -49,6 +49,14 @@ Route::middleware(['auth'])->group(function () {
     // Estudiantes
     Route::resource('estudiantes', EstudianteController::class);
 
+    // 🔍 Ruta para búsqueda AJAX de estudiantes (por nombre o DNI)
+    Route::get('/buscar-estudiantes', [EstudianteController::class, 'buscar'])
+        ->name('buscar.estudiantes');
+
+    // 🔍 Ruta para autocompletar estudiante en formulario de documentos
+    Route::get('/documentos/buscar-persona', [EstudianteController::class, 'buscarPersona'])
+        ->name('documentos.buscar-persona');
+
     // Docentes
     Route::resource('docentes', DocenteController::class);
 
@@ -61,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     // Documento Supervisiones
     Route::resource('documento_supervisiones', DocumentoSupervisionController::class); 
 });
+
 
 
 

@@ -14,39 +14,23 @@ class EstudianteController extends Controller
     {
         $query = Estudiante::with('persona');
 
-        if ($request->has('dni') && !empty($request->dni)) {
+        if ($request->filled('dni')) {
             $query->whereHas('persona', function($q) use ($request) {
                 $q->where('cDNI', 'like', '%' . $request->dni . '%');
             });
         }
 
         $estudiantes = $query->get();
-
         return view('estudiantes.index', compact('estudiantes'));
     }
 
     // Formulario de registro
     public function create()
     {
-        $programas = Constante::where('nConstGrupo', 'PROGRAMA_ESTUDIO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $planes = Constante::where('nConstGrupo', 'PLAN_ESTUDIO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $modulos = Constante::where('nConstGrupo', 'MODULO_FORMATIVO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $turnos = Constante::where('nConstGrupo', 'TURNO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
+        $programas = $this->getConstantes('PROGRAMA_ESTUDIO');
+        $planes    = $this->getConstantes('PLAN_ESTUDIO');
+        $modulos   = $this->getConstantes('MODULO_FORMATIVO');
+        $turnos    = $this->getConstantes('TURNO');
 
         return view('estudiantes.create', compact('programas', 'planes', 'modulos', 'turnos'));
     }
@@ -64,14 +48,10 @@ class EstudianteController extends Controller
             'nModuloFormativo'  => 'required|integer',
             'nCelular'          => 'required|digits:9',
             'nTurno'            => 'required|integer',
+            'cCentroPracticas'  => 'nullable|string|max:255',
         ]);
 
-        $persona = Persona::create([
-            'cNombre'   => $request->cNombre,
-            'cApellido' => $request->cApellido,
-            'cDNI'      => $request->cDNI,
-            'cCorreo'   => $request->cCorreo,
-        ]);
+        $persona = Persona::create($request->only('cNombre', 'cApellido', 'cDNI', 'cCorreo'));
 
         Estudiante::create([
             'IdPersona'         => $persona->IdPersona,
@@ -80,6 +60,7 @@ class EstudianteController extends Controller
             'nModuloFormativo'  => $request->nModuloFormativo,
             'nCelular'          => $request->nCelular,
             'nTurno'            => $request->nTurno,
+            'cCentroPracticas'  => $request->cCentroPracticas,
         ]);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante registrado correctamente.');
@@ -89,26 +70,10 @@ class EstudianteController extends Controller
     public function edit($id)
     {
         $estudiante = Estudiante::with('persona')->findOrFail($id);
-
-        $programas = Constante::where('nConstGrupo', 'PROGRAMA_ESTUDIO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $planes = Constante::where('nConstGrupo', 'PLAN_ESTUDIO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $modulos = Constante::where('nConstGrupo', 'MODULO_FORMATIVO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
-
-        $turnos = Constante::where('nConstGrupo', 'TURNO')
-            ->where('nConstEstado', 1)
-            ->orderBy('nConstOrden')
-            ->get();
+        $programas  = $this->getConstantes('PROGRAMA_ESTUDIO');
+        $planes     = $this->getConstantes('PLAN_ESTUDIO');
+        $modulos    = $this->getConstantes('MODULO_FORMATIVO');
+        $turnos     = $this->getConstantes('TURNO');
 
         return view('estudiantes.edit', compact('estudiante', 'programas', 'planes', 'modulos', 'turnos'));
     }
@@ -128,22 +93,19 @@ class EstudianteController extends Controller
             'nModuloFormativo'  => 'required|integer',
             'nCelular'          => 'required|digits:9',
             'nTurno'            => 'required|integer',
+            'cCentroPracticas'  => 'nullable|string|max:255',
         ]);
 
-        $estudiante->persona->update([
-            'cNombre'   => $request->cNombre,
-            'cApellido' => $request->cApellido,
-            'cDNI'      => $request->cDNI,
-            'cCorreo'   => $request->cCorreo,
-        ]);
+        $estudiante->persona->update($request->only('cNombre', 'cApellido', 'cDNI', 'cCorreo'));
 
-        $estudiante->update([
-            'nProgramaEstudios' => $request->nProgramaEstudios,
-            'nPlanEstudio'      => $request->nPlanEstudio,
-            'nModuloFormativo'  => $request->nModuloFormativo,
-            'nCelular'          => $request->nCelular,
-            'nTurno'            => $request->nTurno,
-        ]);
+        $estudiante->update($request->only(
+            'nProgramaEstudios',
+            'nPlanEstudio',
+            'nModuloFormativo',
+            'nCelular',
+            'nTurno',
+            'cCentroPracticas'
+        ));
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado correctamente.');
     }
@@ -158,10 +120,55 @@ class EstudianteController extends Controller
         }
 
         $estudiante->delete();
-
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
     }
+
+    // ==============================
+    // Autocompletado AJAX
+    // ==============================
+    public function buscarPersona(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        $resultados = Estudiante::with('persona')
+            ->whereHas('persona', function ($q) use ($term) {
+                $q->where('cNombre', 'LIKE', "%{$term}%")
+                  ->orWhere('cApellido', 'LIKE', "%{$term}%")
+                  ->orWhere('cDNI', 'LIKE', "%{$term}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($est) {
+                return [
+                    'id'               => $est->IdEstudiante,
+                    'nombre'           => $est->persona->cNombre . ' ' . $est->persona->cApellido,
+                    'dni'              => $est->persona->cDNI,
+                    'programa'         => $est->programa_nombre ?? '', // asegúrate de accesor
+                    'modulo'           => $est->modulo_nombre ?? '',
+                    'nro_expediente'   => $est->nro_expediente ?? '',
+                    'centro_practicas' => $est->cCentroPracticas ?? '',
+                    'text'             => $est->persona->cNombre . ' ' . $est->persona->cApellido . ' (' . $est->persona->cDNI . ')',
+                ];
+            });
+
+        return response()->json($resultados);
+    }
+
+    // ==============================
+    // Función auxiliar para constantes
+    // ==============================
+    private function getConstantes($grupo)
+    {
+        return Constante::where('nConstGrupo', $grupo)
+                        ->where('nConstEstado', 1)
+                        ->orderBy('nConstOrden')
+                        ->get();
+    }
 }
+
+
+
+
 
 
 

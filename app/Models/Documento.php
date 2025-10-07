@@ -9,11 +9,12 @@ class Documento extends Model
 {
     use HasFactory;
 
-    // Nombre de la tabla en la BD
+    // =============================
+    // Configuración del modelo
+    // =============================
     protected $table = 'DOCUMENTO';
-
-    // Nombre de la PK
     protected $primaryKey = 'IdDocumento';
+    public $timestamps = false;
 
     protected $fillable = [
         'cNroDocumento',
@@ -21,17 +22,81 @@ class Documento extends Model
         'cTipoDocumento',
         'dFechaEntrega',
         'eDocumentoAdjunto',
+        'IdEstudiante', // Relación con estudiante
     ];
 
-    public $timestamps = false;
+    protected $casts = [
+        'dFechaDocumento' => 'date',
+        'dFechaEntrega'   => 'date',
+    ];
+
+    // =============================
+    // Relaciones
+    // =============================
 
     /**
-     * Relación con la tabla CONSTANTE (tipo de documento).
+     * Tipo de documento (constante)
      */
     public function tipoDocumento()
     {
         return $this->belongsTo(Constante::class, 'cTipoDocumento', 'IdConstante');
     }
+
+    /**
+     * Estudiante relacionado
+     */
+    public function estudiante()
+    {
+        return $this->belongsTo(Estudiante::class, 'IdEstudiante', 'IdEstudiante');
+    }
+
+    /**
+     * Documentos supervisiones relacionados
+     */
+    public function documentoSupervisiones()
+    {
+        return $this->hasMany(DocumentoSupervision::class, 'IdDocumento', 'IdDocumento');
+    }
+
+    // =============================
+    // Accesores
+    // =============================
+
+    /**
+     * Obtener nombre completo del estudiante
+     */
+    public function getNombreEstudianteAttribute()
+    {
+        return $this->estudiante ? $this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido : null;
+    }
+
+    /**
+     * Obtener DNI del estudiante
+     */
+    public function getDniEstudianteAttribute()
+    {
+        return $this->estudiante ? $this->estudiante->persona->cDNI : null;
+    }
+
+    /**
+     * Determinar si el documento es de tipo Secretaría
+     */
+    public function isSecretaria()
+    {
+        return $this->tipoDocumento && stripos($this->tipoDocumento->nConstDescripcion, 'SECRETARÍA') !== false;
+    }
+
+    /**
+     * Determinar si el documento es Memorándum
+     */
+    public function isMemorandum()
+    {
+        return $this->tipoDocumento && stripos($this->tipoDocumento->nConstDescripcion, 'MEMORÁNDUM') !== false;
+    }
 }
+
+
+
+
 
 
