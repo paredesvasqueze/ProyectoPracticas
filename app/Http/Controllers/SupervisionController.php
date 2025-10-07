@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Supervision;
 use App\Models\Docente;
 use App\Models\CartaPresentacion;
+use App\Models\Constante;
 use Illuminate\Http\Request;
 
 class SupervisionController extends Controller
@@ -14,23 +15,36 @@ class SupervisionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Supervision::with(['docente.persona', 'cartaPresentacion']);
+        $query = Supervision::with([
+            'docente.persona',
+            'cartaPresentacion.estudiante.persona'
+        ]);
 
+        // Búsqueda por nombre del docente o número de carta
         if ($request->filled('search')) {
             $search = $request->search;
-
-            $query->where(function($q) use ($search) {
-                $q->whereHas('docente.persona', function($q2) use ($search) {
-                    $q2->where('cNombre', 'like', "%{$search}%")
-                       ->orWhere('cApellido', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('docente.persona', function ($sub) use ($search) {
+                    $sub->where('cNombre', 'like', "%{$search}%")
+                        ->orWhere('cApellido', 'like', "%{$search}%");
                 })
-                ->orWhereHas('cartaPresentacion', function($q3) use ($search) {
-                    $q3->where('nNroCarta', 'like', "%{$search}%");
+                ->orWhereHas('cartaPresentacion', function ($sub) use ($search) {
+                    $sub->where('nNroCarta', 'like', "%{$search}%");
                 });
             });
         }
 
-        $supervisiones = $query->orderBy('IdSupervision', 'desc')->get();
+        $supervisiones = $query->orderByDesc('IdSupervision')->get();
+
+        // Obtener todos los nombres de constantes en una sola consulta (mejor rendimiento)
+        $estados = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')->pluck('nConstDescripcion', 'nConstValor');
+        $oficinas = Constante::where('nConstGrupo', 'OFICINA')->pluck('nConstDescripcion', 'nConstValor');
+
+        // Asignar nombres legibles a cada registro
+        foreach ($supervisiones as $item) {
+            $item->estado_nombre = $estados[(string)$item->nEstado] ?? '—';
+            $item->oficina_nombre = $oficinas[(string)$item->nOficina] ?? '—';
+        }
 
         return view('supervisiones.index', compact('supervisiones'));
     }
@@ -43,11 +57,17 @@ class SupervisionController extends Controller
         $docentes = Docente::with('persona')->get();
         $cartas = CartaPresentacion::with('estudiante.persona')->get();
 
-        $supervisiones = Supervision::with(['docente.persona', 'cartaPresentacion'])
-                                    ->orderBy('IdSupervision', 'desc')
-                                    ->get();
+        $estados = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')
+            ->where('nConstEstado', 1)
+            ->orderBy('nConstOrden')
+            ->get();
 
-        return view('supervisiones.create', compact('docentes', 'cartas', 'supervisiones'));
+        $oficinas = Constante::where('nConstGrupo', 'OFICINA')
+            ->where('nConstEstado', 1)
+            ->orderBy('nConstOrden')
+            ->get();
+
+        return view('supervisiones.create', compact('docentes', 'cartas', 'estados', 'oficinas'));
     }
 
     /**
@@ -62,33 +82,25 @@ class SupervisionController extends Controller
             'dFechaInicio' => 'required|date',
             'dFechaFin' => 'required|date|after_or_equal:dFechaInicio',
             'nHoras' => 'required|integer|min:1',
-
-            // Validación de detalles como arreglo
+            'nEstado' => 'required|integer',
+            'nOficina' => 'required|integer',
             'detalles' => 'required|array|min:1',
             'detalles.*.nNroSupervision' => 'required|integer|min:1',
             'detalles.*.dFechaSupervision' => 'required|date',
         ]);
 
-        // Crear supervisión principal
-        $supervision = Supervision::create([
-            'IdDocente' => $request->IdDocente,
-            'IdCartaPresentacion' => $request->IdCartaPresentacion,
-            'nNota' => $request->nNota,
-            'dFechaInicio' => $request->dFechaInicio,
-            'dFechaFin' => $request->dFechaFin,
-            'nHoras' => $request->nHoras,
-        ]);
+        $supervision = Supervision::create($request->only([
+            'IdDocente', 'IdCartaPresentacion', 'nNota', 'dFechaInicio', 'dFechaFin', 'nHoras', 'nEstado', 'nOficina'
+        ]));
 
-        // Crear detalles de supervisión
         foreach ($request->detalles as $detalle) {
             $supervision->detalles()->create([
-                'nNroSupervision' => $detalle['nNroSupervision'],
+                'nNroSupervision'   => $detalle['nNroSupervision'],
                 'dFechaSupervision' => $detalle['dFechaSupervision'],
             ]);
         }
 
-        return redirect()->route('supervisiones.create')
-                         ->with('success', 'Supervisión registrada correctamente.');
+        return redirect()->route('supervisiones.index')->with('success', '✅ Supervisión registrada correctamente.');
     }
 
     /**
@@ -96,8 +108,21 @@ class SupervisionController extends Controller
      */
     public function show($id)
     {
-        $supervision = Supervision::with(['docente.persona', 'cartaPresentacion', 'detalles'])
-                                  ->findOrFail($id);
+        $supervision = Supervision::with([
+            'docente.persona',
+            'cartaPresentacion.estudiante.persona',
+            'detalles'
+        ])->findOrFail($id);
+
+        // Obtener nombres legibles
+        $supervision->estado_nombre = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')
+            ->where('nConstValor', (string)$supervision->nEstado)
+            ->value('nConstDescripcion') ?? '—';
+
+        $supervision->oficina_nombre = Constante::where('nConstGrupo', 'OFICINA')
+            ->where('nConstValor', (string)$supervision->nOficina)
+            ->value('nConstDescripcion') ?? '—';
+
         return view('supervisiones.show', compact('supervision'));
     }
 
@@ -106,15 +131,27 @@ class SupervisionController extends Controller
      */
     public function edit($id)
     {
-        $supervision = Supervision::with('detalles')->findOrFail($id);
-        $docentes = Docente::with('persona')->get();
-        $cartas = CartaPresentacion::all();
+        $supervision = Supervision::with(['detalles', 'docente.persona', 'cartaPresentacion.estudiante.persona'])
+            ->findOrFail($id);
 
-        return view('supervisiones.edit', compact('supervision', 'docentes', 'cartas'));
+        $docentes = Docente::with('persona')->get();
+        $cartas = CartaPresentacion::with('estudiante.persona')->get();
+
+        $estados = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')
+            ->where('nConstEstado', 1)
+            ->orderBy('nConstOrden')
+            ->get();
+
+        $oficinas = Constante::where('nConstGrupo', 'OFICINA')
+            ->where('nConstEstado', 1)
+            ->orderBy('nConstOrden')
+            ->get();
+
+        return view('supervisiones.edit', compact('supervision', 'docentes', 'cartas', 'estados', 'oficinas'));
     }
 
     /**
-     * Actualizar supervisión y detalles
+     * Actualizar supervisión y sus detalles
      */
     public function update(Request $request, $id)
     {
@@ -125,35 +162,28 @@ class SupervisionController extends Controller
             'dFechaInicio' => 'required|date',
             'dFechaFin' => 'required|date|after_or_equal:dFechaInicio',
             'nHoras' => 'required|integer|min:1',
-
+            'nEstado' => 'required|integer',
+            'nOficina' => 'required|integer',
             'detalles' => 'required|array|min:1',
             'detalles.*.nNroSupervision' => 'required|integer|min:1',
             'detalles.*.dFechaSupervision' => 'required|date',
         ]);
 
         $supervision = Supervision::findOrFail($id);
-        $supervision->update([
-            'IdDocente' => $request->IdDocente,
-            'IdCartaPresentacion' => $request->IdCartaPresentacion,
-            'nNota' => $request->nNota,
-            'dFechaInicio' => $request->dFechaInicio,
-            'dFechaFin' => $request->dFechaFin,
-            'nHoras' => $request->nHoras,
-        ]);
+        $supervision->update($request->only([
+            'IdDocente', 'IdCartaPresentacion', 'nNota', 'dFechaInicio', 'dFechaFin', 'nHoras', 'nEstado', 'nOficina'
+        ]));
 
-        // Actualizar detalles: primero eliminamos los antiguos
+        // Actualizar detalles (borrar y recrear)
         $supervision->detalles()->delete();
-
-        // Insertamos los nuevos
         foreach ($request->detalles as $detalle) {
             $supervision->detalles()->create([
-                'nNroSupervision' => $detalle['nNroSupervision'],
+                'nNroSupervision'   => $detalle['nNroSupervision'],
                 'dFechaSupervision' => $detalle['dFechaSupervision'],
             ]);
         }
 
-        return redirect()->route('supervisiones.index')
-                         ->with('success', 'Supervisión actualizada correctamente.');
+        return redirect()->route('supervisiones.index')->with('success', '✅ Supervisión actualizada correctamente.');
     }
 
     /**
@@ -165,17 +195,9 @@ class SupervisionController extends Controller
         $supervision->detalles()->delete();
         $supervision->delete();
 
-        return redirect()->route('supervisiones.index')
-                         ->with('success', 'Supervisión eliminada correctamente.');
+        return redirect()->route('supervisiones.index')->with('success', '🗑️ Supervisión eliminada correctamente.');
     }
 }
-
-
-
-
-
-
-
 
 
 

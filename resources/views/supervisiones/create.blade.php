@@ -93,6 +93,31 @@
                     <label class="form-label">Horas</label>
                     <input type="number" name="nHoras" class="form-control" min="1" step="1" value="{{ old('nHoras') }}" required>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Estado</label>
+                    <select name="nEstado" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->nConstValor }}" {{ old('nEstado') == $estado->nConstValor ? 'selected' : '' }}>
+                                {{ $estado->nConstDescripcion }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Oficina</label>
+                    <select name="nOficina" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach($oficinas as $oficina)
+                            <option value="{{ $oficina->nConstValor }}" {{ old('nOficina') == $oficina->nConstValor ? 'selected' : '' }}>
+                                {{ $oficina->nConstDescripcion }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
             </div>
         </div>
 

@@ -41,8 +41,6 @@
                     <tr>
                         <th>ID</th>
                         <th>Fecha Registro</th>
-                        <th>Fecha Supervisión</th>
-                        <th>Nro Supervisión</th>
                         <th>Documento</th>
                         <th>Supervisión</th>
                         <th class="text-center">Acciones</th>
@@ -53,8 +51,6 @@
                     <tr>
                         <td>{{ $ds->IdDocumentoSupervision }}</td>
                         <td>{{ $ds->dFechaRegistro }}</td>
-                        <td>{{ $ds->dFechaSupervision }}</td>
-                        <td>{{ $ds->nNroSupervision }}</td>
                         <td>{{ $ds->documento->cNroDocumento ?? '-' }}</td>
                         <td>Supervisión #{{ $ds->supervision->IdSupervision ?? '-' }}</td>
                         <td class="text-center">

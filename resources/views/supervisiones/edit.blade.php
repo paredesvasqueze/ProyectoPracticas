@@ -1,4 +1,3 @@
-
 {{-- resources/views/supervisiones/edit.blade.php --}}
 @extends('layouts.app')
 
@@ -55,38 +54,43 @@
                 <h5 class="mb-0">Datos de Supervisión</h5>
             </div>
             <div class="card-body">
+                
+                {{-- DOCENTE --}}
                 <div class="mb-3">
                     <label class="form-label">Docente</label>
                     <select name="IdDocente" class="form-select" required>
                         <option value="">-- Seleccione --</option>
                         @foreach($docentes as $docente)
                             <option value="{{ $docente->IdDocente }}" 
-                                {{ old('IdDocente', $supervision->IdDocente) == $docente->IdDocente ? 'selected' : '' }}>
+                                {{ (old('IdDocente', $supervision->IdDocente) == $docente->IdDocente) ? 'selected' : '' }}>
                                 {{ $docente->persona->cNombre }} {{ $docente->persona->cApellido }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
+                {{-- CARTA DE PRESENTACIÓN --}}
                 <div class="mb-3">
                     <label class="form-label">Carta de Presentación</label>
                     <select name="IdCartaPresentacion" class="form-select" required>
                         <option value="">-- Seleccione --</option>
                         @foreach($cartas as $carta)
                             <option value="{{ $carta->IdCartaPresentacion }}" 
-                                {{ old('IdCartaPresentacion', $supervision->IdCartaPresentacion) == $carta->IdCartaPresentacion ? 'selected' : '' }}>
+                                {{ (old('IdCartaPresentacion', $supervision->IdCartaPresentacion) == $carta->IdCartaPresentacion) ? 'selected' : '' }}>
                                 Carta #{{ $carta->nNroCarta }} - Estudiante: {{ $carta->estudiante->persona->cNombre }} {{ $carta->estudiante->persona->cApellido }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
+                {{-- NOTA --}}
                 <div class="mb-3">
                     <label class="form-label">Nota</label>
                     <input type="number" name="nNota" class="form-control" min="0" max="20" 
                            value="{{ old('nNota', $supervision->nNota) }}">
                 </div>
 
+                {{-- FECHAS --}}
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Fecha Inicio</label>
@@ -100,15 +104,45 @@
                     </div>
                 </div>
 
+                {{-- HORAS --}}
                 <div class="mb-3">
                     <label class="form-label">Horas</label>
                     <input type="number" name="nHoras" class="form-control" min="1" 
                            value="{{ old('nHoras', $supervision->nHoras) }}" required>
                 </div>
+
+                {{-- ESTADO --}}
+                <div class="mb-3">
+                    <label class="form-label">Estado</label>
+                    <select name="nEstado" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->nConstValor }}" 
+                                {{ (old('nEstado', $supervision->nEstado) == $estado->nConstValor) ? 'selected' : '' }}>
+                                {{ $estado->nConstDescripcion }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- OFICINA --}}
+                <div class="mb-3">
+                    <label class="form-label">Oficina</label>
+                    <select name="nOficina" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach($oficinas as $oficina)
+                            <option value="{{ $oficina->nConstValor }}" 
+                                {{ (old('nOficina', $supervision->nOficina) == $oficina->nConstValor) ? 'selected' : '' }}>
+                                {{ $oficina->nConstDescripcion }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
             </div>
         </div>
 
-        <!-- Detalles dinámicos -->
+        <!-- DETALLES -->
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-secondary text-white">
                 <h5 class="mb-0">Detalles de Supervisión</h5>
@@ -159,12 +193,11 @@
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-{{-- JS para agregar/quitar filas dinámicamente --}}
+{{-- JS dinámico --}}
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
 <script>
 let rowIndex = {{ $supervision->detalles->count() }};
 
-// Agregar fila
 $(document).on('click', '.addRow', function() {
     let row = `<tr>
         <td><input type="number" name="detalles[${rowIndex}][nNroSupervision]" class="form-control" min="1" step="1" required></td>
@@ -177,9 +210,9 @@ $(document).on('click', '.addRow', function() {
     rowIndex++;
 });
 
-// Eliminar fila
 $(document).on('click', '.removeRow', function() {
     $(this).closest('tr').remove();
 });
 </script>
 @endsection
+

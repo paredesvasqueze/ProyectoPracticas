@@ -21,12 +21,17 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Gestión de Supervisiones</h2>
-        <a href="{{ route('supervisiones.create') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nueva Supervisión
-        </a>
-    </div>
+    <h2 class="mb-4">Gestión de Supervisiones</h2>
+
+    <!-- Botón para nueva supervisión -->
+    <a href="{{ route('supervisiones.create') }}" class="btn btn-success mb-3">
+        <i class="bi bi-plus-circle"></i> Nueva Supervisión
+    </a>
+
+    <!-- Mensaje de éxito -->
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
     <!-- Tabla de supervisiones -->
     <div class="card shadow-sm">
@@ -41,6 +46,8 @@
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
                         <th>Horas</th>
+                        <th>Estado</th>
+                        <th>Oficina</th>
                         <th class="text-center">Detalle</th>
                         <th class="text-center">Acciones</th>
                     </tr>
@@ -49,21 +56,32 @@
                     @forelse ($supervisiones as $supervision)
                         <tr>
                             <td>{{ $supervision->IdSupervision }}</td>
-                            <td>{{ $supervision->docente->persona->cNombre ?? '' }} {{ $supervision->docente->persona->cApellido ?? '' }}</td>
+                            <td>
+                                {{ $supervision->docente->persona->cNombre ?? '' }}
+                                {{ $supervision->docente->persona->cApellido ?? '' }}
+                            </td>
                             <td>{{ $supervision->cartaPresentacion->nNroCarta ?? 'N/A' }}</td>
                             <td>{{ $supervision->nNota ?? '-' }}</td>
                             <td>{{ $supervision->dFechaInicio }}</td>
                             <td>{{ $supervision->dFechaFin }}</td>
                             <td>{{ $supervision->nHoras }}</td>
+                            <td>{{ $supervision->estado_nombre ?? '—' }}</td>
+                            <td>{{ $supervision->oficina_nombre ?? '—' }}</td>
 
                             <!-- Botón ver detalle -->
                             <td class="text-center">
-                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detalleModal{{ $supervision->IdSupervision }}">
+                                <button class="btn btn-info btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#detalleModal{{ $supervision->IdSupervision }}">
                                     <i class="bi bi-eye"></i> Ver
                                 </button>
 
                                 <!-- Modal Detalle -->
-                                <div class="modal fade" id="detalleModal{{ $supervision->IdSupervision }}" tabindex="-1" aria-labelledby="detalleModalLabel{{ $supervision->IdSupervision }}" aria-hidden="true">
+                                <div class="modal fade"
+                                     id="detalleModal{{ $supervision->IdSupervision }}"
+                                     tabindex="-1"
+                                     aria-labelledby="detalleModalLabel{{ $supervision->IdSupervision }}"
+                                     aria-hidden="true">
                                     <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -111,7 +129,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">No hay supervisiones registradas.</td>
+                            <td colspan="11" class="text-center">No hay supervisiones registradas.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -124,3 +142,4 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
+

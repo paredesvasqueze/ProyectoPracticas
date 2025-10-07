@@ -9,16 +9,10 @@ class Supervision extends Model
 {
     use HasFactory;
 
-    /**
-     * Nombre real de la tabla en la BD
-     */
-    protected $table = 'supervision'; 
+    protected $table = 'SUPERVISION';
     protected $primaryKey = 'IdSupervision';
     public $timestamps = false;
 
-    /**
-     * Campos que se pueden asignar masivamente
-     */
     protected $fillable = [
         'IdDocente',
         'IdCartaPresentacion',
@@ -26,51 +20,54 @@ class Supervision extends Model
         'dFechaInicio',
         'dFechaFin',
         'nHoras',
+        'nEstado',
+        'nOficina',
     ];
 
-    /**
-     * Relaciones
-     */
+    // ==========================
+    // RELACIONES
+    // ==========================
 
     // Una supervisión pertenece a un docente
     public function docente()
     {
-        return $this->belongsTo(Docente::class, 'IdDocente', 'IdDocente');
+        return $this->belongsTo(Docente::class, 'IdDocente', 'IdDocente')
+                    ->with('persona'); // permite acceder al nombre del docente
     }
 
     // Una supervisión pertenece a una carta de presentación
     public function cartaPresentacion()
     {
-        return $this->belongsTo(CartaPresentacion::class, 'IdCartaPresentacion', 'IdCartaPresentacion');
+        return $this->belongsTo(CartaPresentacion::class, 'IdCartaPresentacion', 'IdCartaPresentacion')
+                    ->with('estudiante.persona');
     }
 
-    // Una supervisión puede tener varios detalles
+    // Una supervisión tiene varios detalles
     public function detalles()
     {
         return $this->hasMany(SupervisionDetalle::class, 'IdSupervision', 'IdSupervision');
     }
 
-    /**
-     * Crear supervisión con varios detalles de forma masiva
-     */
-    public static function crearConDetalles(array $data, array $detallesData)
+    // ==========================
+    // MÉTODOS PERSONALIZADOS
+    // ==========================
+
+    public static function crearConDetalles(array $data, array $detallesData = [])
     {
-        // Crear supervisión principal
         $supervision = self::create($data);
 
-        // Crear cada detalle
-        foreach ($detallesData as $detalle) {
-            $supervision->detalles()->create([
-                'nNroSupervision' => $detalle['nNroSupervision'],
-                'dFechaSupervision' => $detalle['dFechaSupervision'],
-            ]);
+        if (!empty($detallesData)) {
+            foreach ($detallesData as $detalle) {
+                $supervision->detalles()->create([
+                    'nNroSupervision'   => $detalle['nNroSupervision'] ?? null,
+                    'dFechaSupervision' => $detalle['dFechaSupervision'] ?? null,
+                    'cObservacion'      => $detalle['cObservacion'] ?? null,
+                    'nPuntaje'          => $detalle['nPuntaje'] ?? null,
+                ]);
+            }
         }
 
         return $supervision;
     }
 }
-
-
-
-
 
