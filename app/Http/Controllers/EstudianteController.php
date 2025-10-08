@@ -6,36 +6,47 @@ use Illuminate\Http\Request;
 use App\Models\Estudiante;
 use App\Models\Persona;
 use App\Models\Constante;
+use Illuminate\Support\Facades\DB;
 
 class EstudianteController extends Controller
 {
-    // Mostrar listado de estudiantes con opción de búsqueda por DNI
+    /**
+     * Mostrar listado de estudiantes con búsqueda por DNI o nombre.
+     */
     public function index(Request $request)
     {
-        $query = Estudiante::with('persona');
+        $busqueda = $request->input('dni');
 
-        if ($request->filled('dni')) {
-            $query->whereHas('persona', function($q) use ($request) {
-                $q->where('cDNI', 'like', '%' . $request->dni . '%');
-            });
-        }
+        $estudiantes = Estudiante::with(['persona', 'programa', 'plan', 'modulo', 'turno'])
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('persona', function ($q) use ($busqueda) {
+                    $q->where('cDNI', 'like', '%' . $busqueda . '%')
+                      ->orWhere('cNombre', 'like', '%' . $busqueda . '%')
+                      ->orWhere('cApellido', 'like', '%' . $busqueda . '%');
+                });
+            })
+            ->orderByDesc('IdEstudiante')
+            ->get();
 
-        $estudiantes = $query->get();
-        return view('estudiantes.index', compact('estudiantes'));
+        return view('estudiantes.index', compact('estudiantes', 'busqueda'));
     }
 
-    // Formulario de registro
+    /**
+     * Formulario de registro de estudiante.
+     */
     public function create()
     {
-        $programas = $this->getConstantes('PROGRAMA_ESTUDIO');
-        $planes    = $this->getConstantes('PLAN_ESTUDIO');
-        $modulos   = $this->getConstantes('MODULO_FORMATIVO');
-        $turnos    = $this->getConstantes('TURNO');
+        $programas = Constante::where('nConstGrupo', 'PROGRAMA_ESTUDIO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $planes    = Constante::where('nConstGrupo', 'PLAN_ESTUDIO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $modulos   = Constante::where('nConstGrupo', 'MODULO_FORMATIVO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $turnos    = Constante::where('nConstGrupo', 'TURNO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
 
         return view('estudiantes.create', compact('programas', 'planes', 'modulos', 'turnos'));
     }
 
-    // Guardar estudiante
+    /**
+     * Guardar nuevo estudiante.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -48,37 +59,54 @@ class EstudianteController extends Controller
             'nModuloFormativo'  => 'required|integer',
             'nCelular'          => 'required|digits:9',
             'nTurno'            => 'required|integer',
-            'cCentroPracticas'  => 'nullable|string|max:255',
         ]);
 
-        $persona = Persona::create($request->only('cNombre', 'cApellido', 'cDNI', 'cCorreo'));
+        DB::beginTransaction();
 
-        Estudiante::create([
-            'IdPersona'         => $persona->IdPersona,
-            'nProgramaEstudios' => $request->nProgramaEstudios,
-            'nPlanEstudio'      => $request->nPlanEstudio,
-            'nModuloFormativo'  => $request->nModuloFormativo,
-            'nCelular'          => $request->nCelular,
-            'nTurno'            => $request->nTurno,
-            'cCentroPracticas'  => $request->cCentroPracticas,
-        ]);
+        try {
+            $persona = Persona::create([
+                'cNombre'   => strtoupper($request->cNombre),
+                'cApellido' => strtoupper($request->cApellido),
+                'cDNI'      => $request->cDNI,
+                'cCorreo'   => strtolower($request->cCorreo),
+            ]);
 
-        return redirect()->route('estudiantes.index')->with('success', 'Estudiante registrado correctamente.');
+            Estudiante::create([
+                'IdPersona'         => $persona->IdPersona,
+                'nProgramaEstudios' => $request->nProgramaEstudios,
+                'nPlanEstudio'      => $request->nPlanEstudio,
+                'nModuloFormativo'  => $request->nModuloFormativo,
+                'nCelular'          => $request->nCelular,
+                'nTurno'            => $request->nTurno,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante registrado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', '❌ Error al registrar estudiante: ' . $e->getMessage());
+        }
     }
 
-    // Formulario de edición
+    /**
+     * Formulario de edición.
+     */
     public function edit($id)
     {
-        $estudiante = Estudiante::with('persona')->findOrFail($id);
-        $programas  = $this->getConstantes('PROGRAMA_ESTUDIO');
-        $planes     = $this->getConstantes('PLAN_ESTUDIO');
-        $modulos    = $this->getConstantes('MODULO_FORMATIVO');
-        $turnos     = $this->getConstantes('TURNO');
+        $estudiante = Estudiante::with(['persona', 'programa', 'plan', 'modulo', 'turno'])->findOrFail($id);
+
+        $programas = Constante::where('nConstGrupo', 'PROGRAMA_ESTUDIO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $planes    = Constante::where('nConstGrupo', 'PLAN_ESTUDIO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $modulos   = Constante::where('nConstGrupo', 'MODULO_FORMATIVO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
+        $turnos    = Constante::where('nConstGrupo', 'TURNO')->where('nConstEstado', 1)->orderBy('nConstOrden')->get();
 
         return view('estudiantes.edit', compact('estudiante', 'programas', 'planes', 'modulos', 'turnos'));
     }
 
-    // Actualizar estudiante
+    /**
+     * Actualizar estudiante.
+     */
     public function update(Request $request, $id)
     {
         $estudiante = Estudiante::with('persona')->findOrFail($id);
@@ -93,78 +121,95 @@ class EstudianteController extends Controller
             'nModuloFormativo'  => 'required|integer',
             'nCelular'          => 'required|digits:9',
             'nTurno'            => 'required|integer',
-            'cCentroPracticas'  => 'nullable|string|max:255',
         ]);
 
-        $estudiante->persona->update($request->only('cNombre', 'cApellido', 'cDNI', 'cCorreo'));
+        DB::beginTransaction();
 
-        $estudiante->update($request->only(
-            'nProgramaEstudios',
-            'nPlanEstudio',
-            'nModuloFormativo',
-            'nCelular',
-            'nTurno',
-            'cCentroPracticas'
-        ));
+        try {
+            $estudiante->persona->update([
+                'cNombre'   => strtoupper($request->cNombre),
+                'cApellido' => strtoupper($request->cApellido),
+                'cDNI'      => $request->cDNI,
+                'cCorreo'   => strtolower($request->cCorreo),
+            ]);
 
-        return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado correctamente.');
+            $estudiante->update([
+                'nProgramaEstudios' => $request->nProgramaEstudios,
+                'nPlanEstudio'      => $request->nPlanEstudio,
+                'nModuloFormativo'  => $request->nModuloFormativo,
+                'nCelular'          => $request->nCelular,
+                'nTurno'            => $request->nTurno,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante actualizado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', '❌ Error al actualizar estudiante: ' . $e->getMessage());
+        }
     }
 
-    // Eliminar estudiante
+    /**
+     * Eliminar estudiante y su persona asociada.
+     */
     public function destroy($id)
     {
-        $estudiante = Estudiante::findOrFail($id);
+        DB::beginTransaction();
 
-        if ($estudiante->persona) {
-            $estudiante->persona->delete();
+        try {
+            $estudiante = Estudiante::with('persona')->findOrFail($id);
+
+            if ($estudiante->persona) {
+                $estudiante->persona->delete();
+            }
+
+            $estudiante->delete();
+
+            DB::commit();
+
+            return redirect()->route('estudiantes.index')->with('success', '🗑️ Estudiante eliminado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', '❌ Error al eliminar estudiante: ' . $e->getMessage());
         }
-
-        $estudiante->delete();
-        return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
     }
 
-    // ==============================
-    // Autocompletado AJAX
-    // ==============================
-    public function buscarPersona(Request $request)
+    /**
+     * 🔍 Método AJAX para buscar estudiantes y autocompletar datos.
+     */
+    public function buscar(Request $request)
     {
-        $term = $request->get('term', '');
+        $query = $request->get('q', '');
 
-        $resultados = Estudiante::with('persona')
-            ->whereHas('persona', function ($q) use ($term) {
-                $q->where('cNombre', 'LIKE', "%{$term}%")
-                  ->orWhere('cApellido', 'LIKE', "%{$term}%")
-                  ->orWhere('cDNI', 'LIKE', "%{$term}%");
+        $estudiantes = Estudiante::with(['persona', 'programa', 'modulo'])
+            ->whereHas('persona', function ($q) use ($query) {
+                $q->where('cDNI', 'like', '%' . $query . '%')
+                  ->orWhere('cNombre', 'like', '%' . $query . '%')
+                  ->orWhere('cApellido', 'like', '%' . $query . '%');
             })
-            ->limit(10)
             ->get()
-            ->map(function ($est) {
+            ->map(function($est) {
                 return [
                     'id'               => $est->IdEstudiante,
-                    'nombre'           => $est->persona->cNombre . ' ' . $est->persona->cApellido,
+                    'nro_expediente'   => $est->IdEstudiante, // Ajusta si tienes otro campo real
+                    'programa'         => $est->programa->nConstDescripcion ?? '',
+                    'nombre'           => $est->persona->cApellido . ' ' . $est->persona->cNombre,
+                    'centro_practicas' => '---', // Ajusta si lo tienes en otra tabla
                     'dni'              => $est->persona->cDNI,
-                    'programa'         => $est->programa_nombre ?? '', // asegúrate de accesor
-                    'modulo'           => $est->modulo_nombre ?? '',
-                    'nro_expediente'   => $est->nro_expediente ?? '',
-                    'centro_practicas' => $est->cCentroPracticas ?? '',
-                    'text'             => $est->persona->cNombre . ' ' . $est->persona->cApellido . ' (' . $est->persona->cDNI . ')',
+                    'modulo'           => $est->modulo->nConstDescripcion ?? '',
                 ];
             });
 
-        return response()->json($resultados);
-    }
-
-    // ==============================
-    // Función auxiliar para constantes
-    // ==============================
-    private function getConstantes($grupo)
-    {
-        return Constante::where('nConstGrupo', $grupo)
-                        ->where('nConstEstado', 1)
-                        ->orderBy('nConstOrden')
-                        ->get();
+        return response()->json($estudiantes);
     }
 }
+
+
+
+
+
+
 
 
 

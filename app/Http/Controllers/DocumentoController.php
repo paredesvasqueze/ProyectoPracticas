@@ -45,7 +45,7 @@ class DocumentoController extends Controller
     public function create()
     {
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
-            ->where('nConstEstado', '1')
+            ->where('nConstEstado', 1)
             ->orderBy('nConstOrden')
             ->pluck('nConstDescripcion', 'IdConstante');
 
@@ -74,7 +74,7 @@ class DocumentoController extends Controller
                 ? $request->file('eDocumentoAdjunto')->store('documentos', 'public')
                 : null;
 
-            // Crear documento
+            // Crear documento principal
             $documento = Documento::create([
                 'cNroDocumento'     => $request->cNroDocumento,
                 'dFechaDocumento'   => $request->dFechaDocumento,
@@ -84,39 +84,44 @@ class DocumentoController extends Controller
                 'IdEstudiante'      => $request->IdEstudiante,
             ]);
 
-            $tipoDescripcion = $documento->tipoDocumento->nConstDescripcion ?? '';
+            // Detectar tipo de documento
+            $tipoDescripcion = strtoupper($documento->tipoDocumento->nConstDescripcion ?? '');
 
-            // INFORME A SECRETARÍA ACADÉMICA
-            if (stripos($tipoDescripcion, 'SECRETARÍA') !== false && $request->has('secretaria')) {
+            // 1️⃣ INFORME A SECRETARÍA ACADÉMICA
+            if (str_contains($tipoDescripcion, 'SECRETAR') && $request->has('secretaria')) {
                 foreach ($request->secretaria as $fila) {
-                    DocumentoSupervision::create([
-                        'IdDocumento'    => $documento->IdDocumento,
-                        'dFechaRegistro' => now(),
-                        'nro_secuencial' => $fila['nro_secuencial'] ?? null,
-                        'programa'       => $fila['programa'] ?? null,
-                        'nombre'         => $fila['nombre'] ?? null,
-                        'dni'            => $fila['dni'] ?? null,
-                        'modulo'         => $fila['modulo'] ?? null,
-                    ]);
+                    if (!empty($fila['nombre'])) {
+                        DocumentoSupervision::create([
+                            'IdDocumento'    => $documento->IdDocumento,
+                            'dFechaRegistro' => now(),
+                            'nro_secuencial' => $fila['nro_secuencial'] ?? null,
+                            'programa'       => $fila['programa'] ?? null,
+                            'nombre'         => $fila['nombre'] ?? null,
+                            'dni'            => $fila['dni'] ?? null,
+                            'modulo'         => $fila['modulo'] ?? null,
+                        ]);
+                    }
                 }
             }
-
-            // MEMORÁNDUM A COORDINACIÓN
-            elseif (stripos($tipoDescripcion, 'MEMORÁNDUM') !== false && $request->has('memorandum')) {
+            // 2️⃣ MEMORÁNDUM A COORDINACIÓN
+            elseif (str_contains($tipoDescripcion, 'MEMORAND') && $request->has('memorandum')) {
                 foreach ($request->memorandum as $fila) {
-                    DocumentoSupervision::create([
-                        'IdDocumento'      => $documento->IdDocumento,
-                        'dFechaRegistro'   => now(),
-                        'nro_expediente'   => $fila['nro_expediente'] ?? null,
-                        'programa'         => $fila['programa'] ?? null,
-                        'nombre'           => $fila['nombre'] ?? null,
-                        'centro_practicas' => $fila['centro_practicas'] ?? null,
-                    ]);
+                    if (!empty($fila['nombre'])) {
+                        DocumentoSupervision::create([
+                            'IdDocumento'      => $documento->IdDocumento,
+                            'dFechaRegistro'   => now(),
+                            'nro_expediente'   => $fila['nro_expediente'] ?? null,
+                            'programa'         => $fila['programa'] ?? null,
+                            'nombre'           => $fila['nombre'] ?? null,
+                            'centro_practicas' => $fila['centro_practicas'] ?? null,
+                        ]);
+                    }
                 }
             }
 
             DB::commit();
             return redirect()->route('documentos.index')->with('success', 'Documento registrado correctamente.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error al registrar el documento: ' . $e->getMessage());
@@ -128,10 +133,10 @@ class DocumentoController extends Controller
      */
     public function edit($id)
     {
-        $documento = Documento::with('estudiante.persona')->findOrFail($id);
+        $documento = Documento::with('estudiante.persona', 'tipoDocumento')->findOrFail($id);
 
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
-            ->where('nConstEstado', '1')
+            ->where('nConstEstado', 1)
             ->orderBy('nConstOrden')
             ->pluck('nConstDescripcion', 'IdConstante');
 
@@ -154,6 +159,7 @@ class DocumentoController extends Controller
 
         $documento = Documento::findOrFail($id);
 
+        // Actualizar archivo si hay uno nuevo
         if ($request->hasFile('eDocumentoAdjunto')) {
             if ($documento->eDocumentoAdjunto && Storage::disk('public')->exists($documento->eDocumentoAdjunto)) {
                 Storage::disk('public')->delete($documento->eDocumentoAdjunto);
@@ -194,9 +200,9 @@ class DocumentoController extends Controller
      */
     public function buscarPersona(Request $request)
     {
-        $term = $request->get('term', '');
+        $term = $request->get('q', '');
 
-        $resultados = Estudiante::with('persona', 'programa', 'modulo')
+        $estudiantes = Estudiante::with('persona', 'programa', 'modulo')
             ->whereHas('persona', function ($q) use ($term) {
                 $q->where('cNombre', 'LIKE', "%{$term}%")
                   ->orWhere('cApellido', 'LIKE', "%{$term}%")
@@ -207,19 +213,21 @@ class DocumentoController extends Controller
             ->map(function ($est) {
                 return [
                     'id'               => $est->IdEstudiante,
-                    'nombre'           => $est->nombre_completo,
-                    'dni'              => $est->dni,
-                    'programa'         => $est->programa_nombre,
-                    'modulo'           => $est->modulo_nombre,
-                    'nro_expediente'   => $est->nro_expediente,
-                    'centro_practicas' => $est->centro_practicas,
-                    'text'             => $est->nombre_completo . ' (' . $est->dni . ')',
+                    'nombre'           => $est->persona->cNombre . ' ' . $est->persona->cApellido,
+                    'dni'              => $est->persona->cDNI,
+                    'programa'         => $est->programa->nombre ?? '',
+                    'modulo'           => $est->modulo->nombre ?? '',
+                    'nro_expediente'   => $est->nro_expediente ?? '',
+                    'centro_practicas' => $est->centro_practicas ?? '',
+                    'text'             => $est->persona->cNombre . ' ' . $est->persona->cApellido . ' (' . $est->persona->cDNI . ')',
                 ];
             });
 
-        return response()->json($resultados);
+        return response()->json($estudiantes);
     }
 }
+
+
 
 
 

@@ -10,14 +10,14 @@ class Estudiante extends Model
     protected $primaryKey = 'IdEstudiante';
     public $timestamps = false;
 
+    // Campos que se pueden asignar en masa
     protected $fillable = [
         'IdPersona',
         'nProgramaEstudios',
         'nPlanEstudio',
         'nModuloFormativo',
-        'nTurno',
         'nCelular',
-        'cCentroPracticas', // centro de prácticas
+        'nTurno',
     ];
 
     // =============================
@@ -30,85 +30,35 @@ class Estudiante extends Model
         return $this->belongsTo(Persona::class, 'IdPersona');
     }
 
-    // Cartas de presentación
+    // Relación con cartas de presentación
     public function cartasPresentacion()
     {
         return $this->hasMany(CartaPresentacion::class, 'IdEstudiante');
     }
 
-    // Programa de estudios
+    // Relaciones con la tabla CONSTANTE
     public function programa()
     {
         return $this->belongsTo(Constante::class, 'nProgramaEstudios', 'nConstValor')
                     ->where('nConstGrupo', 'PROGRAMA_ESTUDIO');
     }
 
-    // Plan de estudios
     public function plan()
     {
         return $this->belongsTo(Constante::class, 'nPlanEstudio', 'nConstValor')
                     ->where('nConstGrupo', 'PLAN_ESTUDIO');
     }
 
-    // Módulo formativo
     public function modulo()
     {
         return $this->belongsTo(Constante::class, 'nModuloFormativo', 'nConstValor')
                     ->where('nConstGrupo', 'MODULO_FORMATIVO');
     }
 
-    // Turno
     public function turno()
     {
         return $this->belongsTo(Constante::class, 'nTurno', 'nConstValor')
                     ->where('nConstGrupo', 'TURNO');
-    }
-
-    // =============================
-    // Accesores personalizados
-    // =============================
-
-    // Nombre completo del estudiante
-    public function getNombreCompletoAttribute()
-    {
-        return $this->persona ? trim("{$this->persona->cNombre} {$this->persona->cApellido}") : '';
-    }
-
-    // DNI del estudiante
-    public function getDniAttribute()
-    {
-        return $this->persona->cDNI ?? '';
-    }
-
-    // Último número de expediente (para MEMORÁNDUM)
-    public function getNroExpedienteAttribute()
-    {
-        $carta = $this->cartasPresentacion()->latest('IdCartaPresentacion')->first();
-        return $carta ? $carta->nNroExpediente : '';
-    }
-
-    // Nombre del programa
-    public function getProgramaNombreAttribute()
-    {
-        return $this->programa->nConstDescripcion ?? '';
-    }
-
-    // Centro de prácticas
-    public function getCentroPracticasAttribute()
-    {
-        return $this->cCentroPracticas ?? '';
-    }
-
-    // Módulo formativo (nombre)
-    public function getModuloNombreAttribute()
-    {
-        return $this->modulo->nConstDescripcion ?? '';
-    }
-
-    // Turno (nombre)
-    public function getTurnoNombreAttribute()
-    {
-        return $this->turno->nConstDescripcion ?? '';
     }
 }
 
