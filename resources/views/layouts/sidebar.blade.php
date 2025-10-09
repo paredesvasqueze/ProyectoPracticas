@@ -55,7 +55,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('cartas*') ? 'active' : '' }}" 
                        href="{{ route('cartas.index') }}">
-                        <i class="bi bi-file-earmark-text-fill me-2"></i> Trámites
+                        <i class="bi bi-file-earmark-text-fill me-2"></i> Carta de Presentación
                     </a>
                 </li>
                 <li class="nav-item">
@@ -67,7 +67,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('documento_supervisiones*') ? 'active' : '' }}" 
                        href="{{ route('documento_supervisiones.index') }}">
-                        <i class="bi bi-folder-symlink-fill me-2"></i> Documento Supervisión
+                        <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Carta
                     </a>
                 </li>
             </ul>

@@ -90,7 +90,7 @@ class EstudianteController extends Controller
     }
 
     /**
-     * Formulario de edición.
+     * Formulario de edición de estudiante.
      */
     public function edit($id)
     {
@@ -105,7 +105,7 @@ class EstudianteController extends Controller
     }
 
     /**
-     * Actualizar estudiante.
+     * Actualizar datos del estudiante.
      */
     public function update(Request $request, $id)
     {
@@ -176,49 +176,42 @@ class EstudianteController extends Controller
     }
 
     /**
-     * 🔍 Método AJAX para buscar estudiantes y autocompletar datos.
+     * 🔍 Método AJAX para búsqueda de estudiantes (para autocompletar).
      */
     public function buscar(Request $request)
     {
         $query = $request->get('q', '');
 
-        $estudiantes = Estudiante::with(['persona', 'programa', 'modulo'])
+        $estudiantes = Estudiante::with([
+                'persona',
+                'programa',
+                'modulo',
+                'cartaPresentacion.empresa' // mantener según tu relación (hasOne)
+            ])
             ->whereHas('persona', function ($q) use ($query) {
                 $q->where('cDNI', 'like', '%' . $query . '%')
                   ->orWhere('cNombre', 'like', '%' . $query . '%')
                   ->orWhere('cApellido', 'like', '%' . $query . '%');
             })
+            ->limit(20)
             ->get()
-            ->map(function($est) {
+            ->map(function ($est) {
+                // usamos optional() para evitar errores si falta relación
+                $carta = optional($est->cartaPresentacion);
+
                 return [
                     'id'               => $est->IdEstudiante,
-                    'nro_expediente'   => $est->IdEstudiante, // Ajusta si tienes otro campo real
-                    'programa'         => $est->programa->nConstDescripcion ?? '',
-                    'nombre'           => $est->persona->cApellido . ' ' . $est->persona->cNombre,
-                    'centro_practicas' => '---', // Ajusta si lo tienes en otra tabla
-                    'dni'              => $est->persona->cDNI,
-                    'modulo'           => $est->modulo->nConstDescripcion ?? '',
+                    'dni'              => optional($est->persona)->cDNI ?? '',
+                    'nombre'           => trim((optional($est->persona)->cApellido ?? '') . ' ' . (optional($est->persona)->cNombre ?? '')),
+                    'programa'         => optional($est->programa)->nConstDescripcion ?? '',
+                    'modulo'           => optional($est->modulo)->nConstDescripcion ?? '',
+                    'nro_expediente'   => $carta->nNroExpediente ?? '—',
+                    'centro_practicas' => optional($carta->empresa)->cNombreEmpresa ?? '—',
                 ];
             });
 
         return response()->json($estudiantes);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

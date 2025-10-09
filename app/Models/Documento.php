@@ -22,7 +22,7 @@ class Documento extends Model
         'cTipoDocumento',
         'dFechaEntrega',
         'eDocumentoAdjunto',
-        'IdEstudiante', // Relación con estudiante
+        'IdEstudiante', 
     ];
 
     protected $casts = [
@@ -51,9 +51,9 @@ class Documento extends Model
     }
 
     /**
-     * Documentos supervisiones relacionados
+     * Supervisiones relacionadas al documento
      */
-    public function documentoSupervisiones()
+    public function supervisiones()
     {
         return $this->hasMany(DocumentoSupervision::class, 'IdDocumento', 'IdDocumento');
     }
@@ -67,7 +67,9 @@ class Documento extends Model
      */
     public function getNombreEstudianteAttribute()
     {
-        return $this->estudiante ? $this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido : null;
+        return $this->estudiante
+            ? $this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido
+            : null;
     }
 
     /**
@@ -75,7 +77,9 @@ class Documento extends Model
      */
     public function getDniEstudianteAttribute()
     {
-        return $this->estudiante ? $this->estudiante->persona->cDNI : null;
+        return $this->estudiante
+            ? $this->estudiante->persona->cDNI
+            : null;
     }
 
     /**
@@ -83,7 +87,8 @@ class Documento extends Model
      */
     public function isSecretaria()
     {
-        return $this->tipoDocumento && stripos($this->tipoDocumento->nConstDescripcion, 'SECRETARÍA') !== false;
+        return $this->tipoDocumento &&
+               stripos($this->tipoDocumento->nConstDescripcion, 'SECRETARÍA') !== false;
     }
 
     /**
@@ -91,12 +96,17 @@ class Documento extends Model
      */
     public function isMemorandum()
     {
-        return $this->tipoDocumento && stripos($this->tipoDocumento->nConstDescripcion, 'MEMORÁNDUM') !== false;
+        return $this->tipoDocumento &&
+               stripos($this->tipoDocumento->nConstDescripcion, 'MEMORÁNDUM') !== false;
+    }
+
+    /**
+     * Obtener el nombre del tipo de documento desde la tabla Constante
+     */
+    public function getNombreTipoDocumentoAttribute()
+    {
+        return $this->tipoDocumento->nConstDescripcion ?? '—';
     }
 }
-
-
-
-
 
 

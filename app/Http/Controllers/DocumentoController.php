@@ -4,38 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Documento;
 use App\Models\Constante;
-use App\Models\Estudiante;
-use App\Models\DocumentoSupervision;
+use App\Models\Supervision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DocumentoController extends Controller
 {
     /**
-     * Mostrar listado de documentos con búsqueda.
+     * Mostrar listado de documentos.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Documento::with('estudiante.persona', 'tipoDocumento');
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('cNroDocumento', 'LIKE', "%{$search}%")
-                  ->orWhereHas('tipoDocumento', function ($qt) use ($search) {
-                      $qt->where('nConstDescripcion', 'LIKE', "%{$search}%");
-                  })
-                  ->orWhereHas('estudiante.persona', function ($qp) use ($search) {
-                      $qp->where('cNombre', 'LIKE', "%{$search}%")
-                         ->orWhere('cApellido', 'LIKE', "%{$search}%")
-                         ->orWhere('cDNI', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        $documentos = $query->orderBy('IdDocumento', 'desc')->get();
-
+        $documentos = Documento::with('tipoDocumento')->get();
         return view('documentos.index', compact('documentos'));
     }
 
@@ -53,87 +35,70 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Guardar documento nuevo.
+     * Guardar nuevo documento.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'cNroDocumento'     => 'required|string|max:50',
-            'dFechaDocumento'   => 'required|date',
-            'cTipoDocumento'    => 'required|integer|exists:constante,IdConstante',
-            'dFechaEntrega'     => 'nullable|date',
-            'IdEstudiante'      => 'required|integer|exists:estudiante,IdEstudiante',
-            'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:5120',
+            'cNroDocumento' => 'required|string|max:50',
+            'dFechaDocumento' => 'required|date',
+            'cTipoDocumento' => 'required|integer',
+            'archivo' => 'nullable|file|mimes:pdf,docx|max:2048',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Guardar archivo si existe
-            $rutaArchivo = $request->hasFile('eDocumentoAdjunto')
-                ? $request->file('eDocumentoAdjunto')->store('documentos', 'public')
-                : null;
+            // Guardar archivo si se sube
+            $nombreArchivo = null;
+            if ($request->hasFile('archivo')) {
+                $nombreArchivo = $request->file('archivo')->store('documentos', 'public');
+            }
 
-            // Crear documento principal
+            // Crear el documento
             $documento = Documento::create([
-                'cNroDocumento'     => $request->cNroDocumento,
-                'dFechaDocumento'   => $request->dFechaDocumento,
-                'cTipoDocumento'    => $request->cTipoDocumento,
-                'dFechaEntrega'     => $request->dFechaEntrega,
-                'eDocumentoAdjunto' => $rutaArchivo,
-                'IdEstudiante'      => $request->IdEstudiante,
+                'cNroDocumento' => $request->cNroDocumento,
+                'dFechaDocumento' => $request->dFechaDocumento,
+                'cTipoDocumento' => $request->cTipoDocumento,
+                'cAsunto' => $request->cAsunto,
+                'cReferencia' => $request->cReferencia,
+                'cArchivo' => $nombreArchivo,
+                'IdUsuarioRegistro' => Auth::id(),
+                'dFechaRegistro' => now(),
             ]);
 
-            // Detectar tipo de documento
-            $tipoDescripcion = strtoupper($documento->tipoDocumento->nConstDescripcion ?? '');
-
-            // 1️⃣ INFORME A SECRETARÍA ACADÉMICA
-            if (str_contains($tipoDescripcion, 'SECRETAR') && $request->has('secretaria')) {
-                foreach ($request->secretaria as $fila) {
-                    if (!empty($fila['nombre'])) {
-                        DocumentoSupervision::create([
-                            'IdDocumento'    => $documento->IdDocumento,
-                            'dFechaRegistro' => now(),
-                            'nro_secuencial' => $fila['nro_secuencial'] ?? null,
-                            'programa'       => $fila['programa'] ?? null,
-                            'nombre'         => $fila['nombre'] ?? null,
-                            'dni'            => $fila['dni'] ?? null,
-                            'modulo'         => $fila['modulo'] ?? null,
-                        ]);
-                    }
-                }
-            }
-            // 2️⃣ MEMORÁNDUM A COORDINACIÓN
-            elseif (str_contains($tipoDescripcion, 'MEMORAND') && $request->has('memorandum')) {
-                foreach ($request->memorandum as $fila) {
-                    if (!empty($fila['nombre'])) {
-                        DocumentoSupervision::create([
-                            'IdDocumento'      => $documento->IdDocumento,
-                            'dFechaRegistro'   => now(),
-                            'nro_expediente'   => $fila['nro_expediente'] ?? null,
-                            'programa'         => $fila['programa'] ?? null,
-                            'nombre'           => $fila['nombre'] ?? null,
-                            'centro_practicas' => $fila['centro_practicas'] ?? null,
-                        ]);
-                    }
+            // Registrar supervisiones si existen
+            if ($request->has('supervisiones')) {
+                foreach ($request->supervisiones as $sup) {
+                    Supervision::create([
+                        'IdDocumento' => $documento->IdDocumento,
+                        'IdEstudiante' => $sup['IdEstudiante'],
+                        'IdUsuarioRegistro' => Auth::id(),
+                        'dFechaRegistro' => now(),
+                    ]);
                 }
             }
 
             DB::commit();
             return redirect()->route('documentos.index')->with('success', 'Documento registrado correctamente.');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al registrar el documento: ' . $e->getMessage());
+            return back()->with('error', 'Error al registrar: ' . $e->getMessage());
         }
     }
 
     /**
-     * Mostrar formulario de edición.
+     * Mostrar formulario de edición con toda la información.
      */
     public function edit($id)
     {
-        $documento = Documento::with('estudiante.persona', 'tipoDocumento')->findOrFail($id);
+        $documento = Documento::with([
+            'tipoDocumento',
+            'supervisiones.estudiante.persona',
+            'supervisiones.estudiante.programa',
+            'supervisiones.estudiante.modulo',
+            'supervisiones.estudiante.empresa'
+        ])->findOrFail($id);
 
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
             ->where('nConstEstado', 1)
@@ -144,98 +109,94 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Actualizar documento.
+     * Actualizar documento y supervisiones.
      */
     public function update(Request $request, $id)
     {
         $request->validate([
-            'cNroDocumento'     => 'required|string|max:50',
-            'dFechaDocumento'   => 'required|date',
-            'cTipoDocumento'    => 'required|integer|exists:constante,IdConstante',
-            'dFechaEntrega'     => 'nullable|date',
-            'IdEstudiante'      => 'required|integer|exists:estudiante,IdEstudiante',
-            'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:5120',
+            'cNroDocumento' => 'required|string|max:50',
+            'dFechaDocumento' => 'required|date',
+            'cTipoDocumento' => 'required|integer',
+            'archivo' => 'nullable|file|mimes:pdf,docx|max:2048',
         ]);
 
-        $documento = Documento::findOrFail($id);
+        DB::beginTransaction();
 
-        // Actualizar archivo si hay uno nuevo
-        if ($request->hasFile('eDocumentoAdjunto')) {
-            if ($documento->eDocumentoAdjunto && Storage::disk('public')->exists($documento->eDocumentoAdjunto)) {
-                Storage::disk('public')->delete($documento->eDocumentoAdjunto);
+        try {
+            $documento = Documento::findOrFail($id);
+
+            // Si hay nuevo archivo, eliminar anterior
+            if ($request->hasFile('archivo')) {
+                if ($documento->cArchivo && Storage::disk('public')->exists($documento->cArchivo)) {
+                    Storage::disk('public')->delete($documento->cArchivo);
+                }
+                $documento->cArchivo = $request->file('archivo')->store('documentos', 'public');
             }
-            $documento->eDocumentoAdjunto = $request->file('eDocumentoAdjunto')->store('documentos', 'public');
+
+            // Actualizar datos del documento
+            $documento->update([
+                'cNroDocumento' => $request->cNroDocumento,
+                'dFechaDocumento' => $request->dFechaDocumento,
+                'cTipoDocumento' => $request->cTipoDocumento,
+                'cAsunto' => $request->cAsunto,
+                'cReferencia' => $request->cReferencia,
+                'IdUsuarioModificacion' => Auth::id(),
+                'dFechaModificacion' => now(),
+            ]);
+
+            // Actualizar supervisiones
+            if ($request->has('supervisiones')) {
+                // Eliminar supervisiones anteriores
+                Supervision::where('IdDocumento', $documento->IdDocumento)->delete();
+
+                // Insertar las nuevas
+                foreach ($request->supervisiones as $sup) {
+                    Supervision::create([
+                        'IdDocumento' => $documento->IdDocumento,
+                        'IdEstudiante' => $sup['IdEstudiante'],
+                        'IdUsuarioRegistro' => Auth::id(),
+                        'dFechaRegistro' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar: ' . $e->getMessage());
         }
-
-        $documento->update([
-            'cNroDocumento'     => $request->cNroDocumento,
-            'dFechaDocumento'   => $request->dFechaDocumento,
-            'cTipoDocumento'    => $request->cTipoDocumento,
-            'dFechaEntrega'     => $request->dFechaEntrega,
-            'eDocumentoAdjunto' => $documento->eDocumentoAdjunto,
-            'IdEstudiante'      => $request->IdEstudiante,
-        ]);
-
-        return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
     }
 
     /**
-     * Eliminar documento.
+     * Eliminar documento y supervisiones relacionadas.
      */
     public function destroy($id)
     {
-        $documento = Documento::findOrFail($id);
+        DB::beginTransaction();
 
-        if ($documento->eDocumentoAdjunto && Storage::disk('public')->exists($documento->eDocumentoAdjunto)) {
-            Storage::disk('public')->delete($documento->eDocumentoAdjunto);
+        try {
+            $documento = Documento::findOrFail($id);
+
+            // Eliminar archivo si existe
+            if ($documento->cArchivo && Storage::disk('public')->exists($documento->cArchivo)) {
+                Storage::disk('public')->delete($documento->cArchivo);
+            }
+
+            // Eliminar supervisiones
+            Supervision::where('IdDocumento', $documento->IdDocumento)->delete();
+
+            // Eliminar documento
+            $documento->delete();
+
+            DB::commit();
+            return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
         }
-
-        $documento->delete();
-
-        return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
-    }
-
-    /**
-     * Buscar estudiantes/personas (AJAX) para autocompletar.
-     */
-    public function buscarPersona(Request $request)
-    {
-        $term = $request->get('q', '');
-
-        $estudiantes = Estudiante::with('persona', 'programa', 'modulo')
-            ->whereHas('persona', function ($q) use ($term) {
-                $q->where('cNombre', 'LIKE', "%{$term}%")
-                  ->orWhere('cApellido', 'LIKE', "%{$term}%")
-                  ->orWhere('cDNI', 'LIKE', "%{$term}%");
-            })
-            ->limit(10)
-            ->get()
-            ->map(function ($est) {
-                return [
-                    'id'               => $est->IdEstudiante,
-                    'nombre'           => $est->persona->cNombre . ' ' . $est->persona->cApellido,
-                    'dni'              => $est->persona->cDNI,
-                    'programa'         => $est->programa->nombre ?? '',
-                    'modulo'           => $est->modulo->nombre ?? '',
-                    'nro_expediente'   => $est->nro_expediente ?? '',
-                    'centro_practicas' => $est->centro_practicas ?? '',
-                    'text'             => $est->persona->cNombre . ' ' . $est->persona->cApellido . ' (' . $est->persona->cDNI . ')',
-                ];
-            });
-
-        return response()->json($estudiantes);
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

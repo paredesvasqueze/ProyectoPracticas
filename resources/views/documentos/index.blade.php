@@ -46,6 +46,7 @@
                         <th>Fecha Documento</th>
                         <th>Fecha Entrega</th>
                         <th>Archivo</th>
+                        <th>Ver</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -66,6 +67,14 @@
                                 <span class="text-muted">Sin archivo</span>
                             @endif
                         </td>
+
+                        <!-- NUEVA COLUMNA: VER ESTUDIANTE -->
+                        <td class="text-center">
+                            <a href="{{ route('documentos.show', $doc->IdDocumento) }}" class="btn btn-info btn-sm">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        </td>
+
                         <td class="text-center">
                             <a href="{{ route('documentos.edit', $doc->IdDocumento) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil-square"></i> Editar
@@ -81,7 +90,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center">No hay documentos registrados.</td>
+                        <td colspan="8" class="text-center">No hay documentos registrados.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -91,7 +100,6 @@
 
 </div>
 
-{{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 @endsection
 
