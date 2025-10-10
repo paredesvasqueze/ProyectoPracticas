@@ -186,7 +186,7 @@ class EstudianteController extends Controller
                 'persona',
                 'programa',
                 'modulo',
-                'cartaPresentacion.empresa' // mantener según tu relación (hasOne)
+                'cartaPresentacion.empresa'
             ])
             ->whereHas('persona', function ($q) use ($query) {
                 $q->where('cDNI', 'like', '%' . $query . '%')
@@ -196,7 +196,6 @@ class EstudianteController extends Controller
             ->limit(20)
             ->get()
             ->map(function ($est) {
-                // usamos optional() para evitar errores si falta relación
                 $carta = optional($est->cartaPresentacion);
 
                 return [
@@ -207,11 +206,19 @@ class EstudianteController extends Controller
                     'modulo'           => optional($est->modulo)->nConstDescripcion ?? '',
                     'nro_expediente'   => $carta->nNroExpediente ?? '—',
                     'centro_practicas' => optional($carta->empresa)->cNombreEmpresa ?? '—',
+                    'estado'           => match ($carta->nEstado ?? 0) {
+                        1 => 'Pendiente',
+                        2 => 'Enviado',
+                        3 => 'Aprobado',
+                        default => 'Pendiente',
+                    },
                 ];
             });
 
         return response()->json($estudiantes);
     }
 }
+
+
 
 

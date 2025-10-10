@@ -41,7 +41,11 @@ class Estudiante extends Model
      */
     public function cartaPresentacion()
     {
-        return $this->hasOne(CartaPresentacion::class, 'IdEstudiante', 'IdEstudiante');
+        return $this->hasOne(CartaPresentacion::class, 'IdEstudiante', 'IdEstudiante')
+                    ->withDefault([
+                        'nNroExpediente' => '—',
+                        'cEstado' => 'Pendiente',
+                    ]);
     }
 
     /**
@@ -51,12 +55,12 @@ class Estudiante extends Model
     public function empresa()
     {
         return $this->hasOneThrough(
-            Empresa::class,               // Modelo destino
-            CartaPresentacion::class,     // Modelo intermedio
-            'IdEstudiante',               // Foreign key en CARTA_PRESENTACION
-            'IdEmpresa',                  // Foreign key en EMPRESA
-            'IdEstudiante',               // Local key en ESTUDIANTE
-            'IdEmpresa'                   // Local key en CARTA_PRESENTACION
+            Empresa::class,               
+            CartaPresentacion::class,     
+            'IdEstudiante',               
+            'IdEmpresa',                  
+            'IdEstudiante',               
+            'IdEmpresa'                   
         );
     }
 
@@ -96,6 +100,7 @@ class Estudiante extends Model
                     ->where('nConstGrupo', 'TURNO');
     }
 }
+
 
 
 

@@ -103,6 +103,7 @@
                                     <th>Programa de Estudios</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>Centro de Prácticas</th>
+                                    <th>Estado</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -129,11 +130,12 @@
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>N° Secuencial</th>
+                                    <th>N° Expediente</th>
                                     <th>Programa</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>DNI</th>
                                     <th>Módulo</th>
+                                    <th>Estado</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -163,11 +165,9 @@
 
 <script>
 $(document).ready(function() {
-
     let indexMemorandum = 0;
     let indexSecretaria = 0;
 
-    // Mostrar tabla según tipo seleccionado
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
@@ -182,15 +182,18 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
-    // Agregar fila
+    // Fila automática (estado readonly)
     function agregarFila(tipo, data = {}) {
+        const estado = data.estado_carta || 'No registrado';
+
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
                 <tr>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][nro_expediente]" class="form-control" value="${data.nro_expediente || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][programa]" class="form-control" value="${data.programa || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][nombre]" class="form-control" value="${data.nombre || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][centro_practicas]" class="form-control" value="${data.centro_practicas || ''}" required></td>
+                    <td>${data.nro_expediente || ''}</td>
+                    <td>${data.programa || ''}</td>
+                    <td>${data.nombre || ''}</td>
+                    <td>${data.centro_practicas || ''}</td>
+                    <td><input type="text" class="form-control" value="${estado}" readonly></td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -200,11 +203,12 @@ $(document).ready(function() {
         } else if (tipo === 'secretaria') {
             $('#bodySecretaria').append(`
                 <tr>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][nro_secuencial]" class="form-control" value="${data.nro_secuencial || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][programa]" class="form-control" value="${data.programa || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][nombre]" class="form-control" value="${data.nombre || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][dni]" class="form-control" maxlength="8" value="${data.dni || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][modulo]" class="form-control" value="${data.modulo || ''}" required></td>
+                    <td>${data.nro_expediente || ''}</td>
+                    <td>${data.programa || ''}</td>
+                    <td>${data.nombre || ''}</td>
+                    <td>${data.dni || ''}</td>
+                    <td>${data.modulo || ''}</td>
+                    <td><input type="text" class="form-control" value="${estado}" readonly></td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -214,19 +218,9 @@ $(document).ready(function() {
         }
     }
 
-    // Botón agregar fila
-    $(document).on('click', '.btnAgregarFila', function() {
-        agregarFila($(this).data('tipo'));
-    });
-
-    // Eliminar fila
-    $(document).on('click', '.btnEliminar', function() {
-        $(this).closest('tr').remove();
-    });
-
-    // 🔍 Función búsqueda AJAX
+    // Buscar estudiante
     function buscarEstudianteAjax(query, tipo) {
-        if(query.length < 2) return; // mínimo 2 caracteres
+        if(query.length < 2) return;
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
@@ -234,20 +228,10 @@ $(document).ready(function() {
             success: function(respuesta) {
                 if(tipo === 'memorandum') {
                     $('#bodyMemorandum').empty();
-                    respuesta.forEach(function(est) {
-                        agregarFila('memorandum', est);
-                    });
+                    respuesta.forEach(est => agregarFila('memorandum', est));
                 } else if(tipo === 'secretaria') {
                     $('#bodySecretaria').empty();
-                    respuesta.forEach(function(est) {
-                        agregarFila('secretaria', {
-                            nro_secuencial: est.id,
-                            programa: est.programa,
-                            nombre: est.nombre,
-                            dni: est.dni,
-                            modulo: est.modulo
-                        });
-                    });
+                    respuesta.forEach(est => agregarFila('secretaria', est));
                 }
             },
             error: function(err) {
@@ -256,28 +240,30 @@ $(document).ready(function() {
         });
     }
 
-    // Memorandum: buscar y limpiar
+    // Botones búsqueda y limpiar
     $('#btnBuscarMemorandum').click(function() {
-        let query = $('#searchMemorandum').val();
-        buscarEstudianteAjax(query, 'memorandum');
+        buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
     $('#btnLimpiarMemorandum').click(function() {
         $('#searchMemorandum').val('');
         $('#bodyMemorandum').empty();
     });
 
-    // Secretaria: buscar y limpiar
     $('#btnBuscarSecretaria').click(function() {
-        let query = $('#searchSecretaria').val();
-        buscarEstudianteAjax(query, 'secretaria');
+        buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
     });
     $('#btnLimpiarSecretaria').click(function() {
         $('#searchSecretaria').val('');
         $('#bodySecretaria').empty();
     });
 
+    $(document).on('click', '.btnEliminar', function() {
+        $(this).closest('tr').remove();
+    });
 });
 </script>
 @endsection
+
+
 
 

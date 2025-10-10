@@ -13,7 +13,9 @@ class CartaPresentacion extends Model
     protected $primaryKey = 'IdCartaPresentacion';
     public $timestamps = false;
 
-    // Campos que se pueden llenar masivamente
+    // =============================
+    // Campos asignables
+    // =============================
     protected $fillable = [
         'IdEstudiante',
         'nNroExpediente',
@@ -29,7 +31,9 @@ class CartaPresentacion extends Model
         'adjunto'
     ];
 
-    // Casts para tipos correctos
+    // =============================
+    // Conversión de tipos
+    // =============================
     protected $casts = [
         'dFechaCarta' => 'date',
         'dFechaRecojo' => 'date',
@@ -37,18 +41,83 @@ class CartaPresentacion extends Model
         'bPresentoSupervision' => 'boolean',
     ];
 
-    // Relación con Estudiante
+    // =============================
+    // Relaciones
+    // =============================
+
+    /**
+     * Relación con el estudiante
+     */
     public function estudiante()
     {
         return $this->belongsTo(Estudiante::class, 'IdEstudiante', 'IdEstudiante');
     }
 
-    // Relación con Empresa
+    /**
+     * Relación con la empresa
+     */
     public function empresa()
     {
         return $this->belongsTo(Empresa::class, 'IdEmpresa', 'IdEmpresa');
     }
+
+    /**
+     * Relación con los documentos (vía tabla intermedia DOCUMENTO_CARTA)
+     */
+    public function documentos()
+    {
+        return $this->belongsToMany(
+            Documento::class,
+            'DOCUMENTO_CARTA',
+            'IdCartaPresentacion',
+            'IdDocumento'
+        )->withPivot('dFechaRegistro');
+    }
+
+    // =============================
+    // Accesores personalizados
+    // =============================
+
+    /**
+     * Obtener nombre legible del estado
+     */
+    public function getNombreEstadoAttribute()
+    {
+        switch ($this->nEstado) {
+            case 0:
+                return 'Pendiente';
+            case 1:
+                return 'Activo';
+            case 2:
+                return 'Finalizado';
+            case 3:
+                return 'Anulado';
+            default:
+                return '—';
+        }
+    }
+
+    // =============================
+    // Scopes útiles
+    // =============================
+
+    /**
+     * Scope para cartas activas
+     */
+    public function scopeActivas($query)
+    {
+        return $query->where('nEstado', 1);
+    }
+
+    /**
+     * Scope para ordenar por fecha de registro descendente
+     */
+    public function scopeRecientes($query)
+    {
+        return $query->orderByDesc('dFechaRegistro');
+    }
 }
+
 
 
 

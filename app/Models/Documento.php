@@ -10,32 +10,35 @@ class Documento extends Model
     use HasFactory;
 
     // =============================
-    // Configuración del modelo
+    // CONFIGURACIÓN DEL MODELO
     // =============================
     protected $table = 'DOCUMENTO';
     protected $primaryKey = 'IdDocumento';
     public $timestamps = false;
 
     protected $fillable = [
-        'cNroDocumento',
+        'cNumeroExpediente',   
         'dFechaDocumento',
         'cTipoDocumento',
         'dFechaEntrega',
         'eDocumentoAdjunto',
-        'IdEstudiante', 
+        'IdEstudiante',
+        'IdUsuarioRegistro',
+        'dFechaRegistro',
     ];
 
     protected $casts = [
         'dFechaDocumento' => 'date',
         'dFechaEntrega'   => 'date',
+        'dFechaRegistro'  => 'datetime',
     ];
 
     // =============================
-    // Relaciones
+    // RELACIONES
     // =============================
 
     /**
-     * Tipo de documento (constante)
+     * Tipo de documento (tabla CONSTANTE)
      */
     public function tipoDocumento()
     {
@@ -58,8 +61,23 @@ class Documento extends Model
         return $this->hasMany(DocumentoSupervision::class, 'IdDocumento', 'IdDocumento');
     }
 
+    /**
+     * Relación con Carta de Presentación (vía tabla intermedia DOCUMENTO_CARTA)
+     */
+    public function cartaPresentacion()
+    {
+        return $this->belongsToMany(
+            CartaPresentacion::class,
+            'DOCUMENTO_CARTA',
+            'IdDocumento',
+            'IdCartaPresentacion'
+        )
+        ->withPivot('dFechaRegistro')
+        ->with('empresa', 'estudiante.persona'); 
+    }
+
     // =============================
-    // Accesores
+    // ACCESORES Y MÉTODOS DERIVADOS
     // =============================
 
     /**
@@ -68,8 +86,8 @@ class Documento extends Model
     public function getNombreEstudianteAttribute()
     {
         return $this->estudiante
-            ? $this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido
-            : null;
+            ? trim($this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido)
+            : '—';
     }
 
     /**
@@ -77,9 +95,15 @@ class Documento extends Model
      */
     public function getDniEstudianteAttribute()
     {
-        return $this->estudiante
-            ? $this->estudiante->persona->cDNI
-            : null;
+        return $this->estudiante->persona->cDNI ?? '—';
+    }
+
+    /**
+     * Obtener el nombre del tipo de documento desde la tabla Constante
+     */
+    public function getNombreTipoDocumentoAttribute()
+    {
+        return $this->tipoDocumento->nConstDescripcion ?? '—';
     }
 
     /**
@@ -101,12 +125,31 @@ class Documento extends Model
     }
 
     /**
-     * Obtener el nombre del tipo de documento desde la tabla Constante
+     * Obtener el estado real de la carta asociada (si existe)
      */
-    public function getNombreTipoDocumentoAttribute()
+    public function getEstadoCartaAttribute()
     {
-        return $this->tipoDocumento->nConstDescripcion ?? '—';
+        $carta = $this->cartaPresentacion->first();
+
+        if (!$carta) {
+            return 'No registrado';
+        }
+
+        // Si el estado es numérico (0,1,2)
+        if (is_numeric($carta->nEstado)) {
+            switch ((int) $carta->nEstado) {
+                case 1: return 'Aprobado';
+                case 2: return 'Rechazado';
+                case 0: return 'Pendiente';
+                default: return 'No registrado';
+            }
+        }
+
+        // Si es texto directo
+        return $carta->nEstado ?: 'No registrado';
     }
 }
+
+
 
 
