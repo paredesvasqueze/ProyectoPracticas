@@ -28,7 +28,7 @@
 
     <!-- Formulario de búsqueda -->
     <form action="{{ route('documentos.index') }}" method="GET" class="mb-3 d-flex">
-        <input type="text" name="search" class="form-control me-2" 
+        <input type="text" name="search" class="form-control me-2"
             placeholder="Buscar por número o tipo" value="{{ request('search') }}">
         <button type="submit" class="btn btn-primary me-2">Buscar</button>
         <a href="{{ route('documentos.index') }}" class="btn btn-secondary">Limpiar</a>
@@ -126,7 +126,7 @@
                                                                     <td>{{ optional($carta->estudiante->persona)->cDNI ?? '-' }}</td>
                                                                     <td>{{ optional($carta->estudiante->modulo)->nConstDescripcion ?? '-' }}</td>
                                                                     <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
-                                                                    <td>{{ $carta->estado_nombre ?? 'No registrado' }}</td>
+                                                                    <td>{{ optional($carta->estado)->nConstDescripcion ?? ($carta->nEstado ?? '—') }}</td>
                                                                     <td>{{ $carta->pivot->dFechaRegistro ? \Carbon\Carbon::parse($carta->pivot->dFechaRegistro)->format('Y-m-d') : '-' }}</td>
                                                                 @elseif(str_contains($tipo, 'memorandum') || str_contains($tipo, 'memorándum'))
                                                                     <td>{{ $carta->nNroExpediente ?? '-' }}</td>
@@ -134,7 +134,7 @@
                                                                     <td>{{ optional($carta->estudiante->persona)->cApellido ?? '' }} {{ optional($carta->estudiante->persona)->cNombre ?? '' }}</td>
                                                                     <td>{{ optional($carta->empresa)->cNombreEmpresa ?? '-' }}</td>
                                                                     <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
-                                                                    <td>{{ $carta->estado_nombre ?? 'No registrado' }}</td>
+                                                                    <td>{{ optional($carta->estado)->nConstDescripcion ?? ($carta->nEstado ?? '—') }}</td>
                                                                     <td>{{ $carta->pivot->dFechaRegistro ? \Carbon\Carbon::parse($carta->pivot->dFechaRegistro)->format('Y-m-d') : '-' }}</td>
                                                                 @else
                                                                     <td>{{ optional($carta->estudiante->persona)->cApellido ?? '' }} {{ optional($carta->estudiante->persona)->cNombre ?? '' }}</td>
@@ -145,7 +145,7 @@
                                                     </tbody>
                                                 </table>
                                             @else
-                                                <p class="text-center">No hay información adicional para este tipo de documento.</p>
+                                                <p class="text-center text-muted">No hay información adicional para este tipo de documento.</p>
                                             @endif
                                         </div>
                                         <div class="modal-footer">
@@ -156,7 +156,7 @@
                             </div>
                         </td>
 
-                        <!-- Acciones: Editar / Eliminar -->
+                        <!-- Acciones -->
                         <td class="text-center">
                             <a href="{{ route('documentos.edit', $doc->IdDocumento) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil-square"></i> Editar
@@ -172,7 +172,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">No hay documentos registrados.</td>
+                        <td colspan="8" class="text-center text-muted">No hay documentos registrados.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -186,6 +186,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
+
+
+
+
+
+
 
 
 

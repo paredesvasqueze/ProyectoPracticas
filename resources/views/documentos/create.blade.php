@@ -3,7 +3,7 @@
 @section('content')
 <div class="p-4">
 
-    <!-- Usuario -->
+    <!-- Usuario arriba a la derecha -->
     <div class="d-flex justify-content-end mb-3">
         <div class="text-end">
             <small>
@@ -172,6 +172,7 @@ $(document).ready(function() {
     let indexSecretaria = 0;
     const fechaRegistro = "{{ date('Y-m-d') }}";
 
+    // === Mostrar tabla según tipo de documento ===
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
@@ -185,10 +186,28 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
+    // === Agregar fila ===
     function agregarFila(tipo, data = {}) {
         const idCarta = data.IdCartaPresentacion || '';
-        const nroCarta = data.nNroCarta || 'No asignado';
+        const nroCarta = data.nro_carta || 'No asignado';
         const estadoCarta = data.estado_carta || 'No registrado';
+        const dni = data.dni || '';
+
+        // Verificar si ya existe el alumno (por DNI o IdCarta)
+        let existe = false;
+        if (tipo === 'memorandum') {
+            $('#bodyMemorandum tr').each(function() {
+                const dniExistente = $(this).find('td').eq(2).text().trim(); // Apellidos y Nombres (posición 2)
+                if (dniExistente === data.nombre) existe = true;
+            });
+        } else {
+            $('#bodySecretaria tr').each(function() {
+                const dniExistente = $(this).find('td').eq(3).text().trim(); // DNI (posición 3)
+                if (dniExistente === dni) existe = true;
+            });
+        }
+
+        if (existe) return; // Evita duplicados
 
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
@@ -205,7 +224,9 @@ $(document).ready(function() {
                         <input type="hidden" name="documento_carta_memorandum[${indexMemorandum}][IdCartaPresentacion]" value="${idCarta}">
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
+                        <button type="button" class="btn btn-danger btn-sm btnEliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `);
@@ -216,7 +237,7 @@ $(document).ready(function() {
                     <td>${data.nro_expediente || ''}</td>
                     <td>${data.programa || ''}</td>
                     <td>${data.nombre || ''}</td>
-                    <td>${data.dni || ''}</td>
+                    <td>${dni}</td>
                     <td>${data.modulo || ''}</td>
                     <td>${nroCarta}</td>
                     <td>${estadoCarta}</td>
@@ -226,7 +247,9 @@ $(document).ready(function() {
                         <input type="hidden" name="documento_carta_secretaria[${indexSecretaria}][IdCartaPresentacion]" value="${idCarta}">
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
+                        <button type="button" class="btn btn-danger btn-sm btnEliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `);
@@ -234,51 +257,60 @@ $(document).ready(function() {
         }
     }
 
+    // === Buscar estudiante AJAX ===
     function buscarEstudianteAjax(query, tipo) {
-        if(query.length < 2) return;
+        if (typeof query !== 'string' || query.trim().length < 2) return;
+
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
             data: { q: query },
             success: function(respuesta) {
-                if(tipo === 'memorandum') {
-                    $('#bodyMemorandum').empty();
-                    respuesta.forEach(est => agregarFila('memorandum', est));
-                } else if(tipo === 'secretaria') {
-                    $('#bodySecretaria').empty();
-                    respuesta.forEach(est => agregarFila('secretaria', est));
-                }
+                console.log('Respuesta AJAX buscar.estudiante:', respuesta);
+
+                // Ya no vaciamos la tabla -> se acumulan los resultados
+                respuesta.forEach(est => agregarFila(tipo, est));
             },
-            error: function(err) { console.error(err); }
+            error: function(err) {
+                console.error(err);
+            }
         });
     }
 
+    // === Botones de búsqueda y limpieza ===
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
-    });
-    $('#btnLimpiarMemorandum').click(function() {
-        $('#searchMemorandum').val('');
-        $('#bodyMemorandum').empty();
     });
 
     $('#btnBuscarSecretaria').click(function() {
         buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
     });
+
+    $('#btnLimpiarMemorandum').click(function() {
+        $('#searchMemorandum').val('');
+        $('#bodyMemorandum').empty();
+        indexMemorandum = 0;
+    });
+
     $('#btnLimpiarSecretaria').click(function() {
         $('#searchSecretaria').val('');
         $('#bodySecretaria').empty();
+        indexSecretaria = 0;
     });
 
+    // === Eliminar fila ===
     $(document).on('click', '.btnEliminar', function() {
         $(this).closest('tr').remove();
     });
 
+    // === Agregar fila manualmente ===
     $(document).on('click', '.btnAgregarFila', function() {
         const tipo = $(this).data('tipo');
         agregarFila(tipo);
     });
 });
 </script>
+
 @endsection
 
 

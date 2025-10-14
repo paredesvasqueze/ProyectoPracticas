@@ -1,4 +1,3 @@
-{{-- resources/views/cartas/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -79,14 +78,24 @@
                                 </span>
                             </td>
                             <td>{{ $carta->empresa->cNombreEmpresa ?? '-' }}</td>
+
+                            <!-- Estado con colores personalizados -->
                             <td>
-                                <span class="badge bg-{{ 
-                                    $carta->nEstado == 'En proceso' ? 'warning' : 
-                                    ($carta->nEstado == 'Finalizado' ? 'success' : 'danger') 
-                                }}">
-                                    {{ $carta->nEstado }}
-                                </span>
+                                @php
+                                    $estado = $carta->nEstado;
+                                    $color = match ($estado) {
+                                        'En proceso' => 'warning text-dark',
+                                        'En coordinación' => 'primary',
+                                        'En jefatura académica' => 'purple text-white',
+                                        'En JUA' => 'info text-dark',
+                                        'Observado' => 'danger',
+                                        'Entregado' => 'success',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $color }}">{{ $estado }}</span>
                             </td>
+
                             <td>{{ \Carbon\Carbon::parse($carta->dFechaRegistro)->format('d/m/Y') }}</td>
                             <td>
                                 @if($carta->adjunto)
@@ -124,7 +133,14 @@
 
 {{-- Bootstrap Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+{{-- Estilos personalizados --}}
+<style>
+    .bg-purple { background-color: #6f42c1 !important; }
+    .table td, .table th { vertical-align: middle !important; }
+</style>
 @endsection
+
 
 
 

@@ -9,12 +9,15 @@ class CartaPresentacion extends Model
 {
     use HasFactory;
 
+    // =============================
+    // CONFIGURACIÓN DEL MODELO
+    // =============================
     protected $table = 'CARTA_PRESENTACION';
     protected $primaryKey = 'IdCartaPresentacion';
     public $timestamps = false;
 
     // =============================
-    // Campos asignables
+    // CAMPOS ASIGNABLES
     // =============================
     protected $fillable = [
         'IdEstudiante',
@@ -32,7 +35,7 @@ class CartaPresentacion extends Model
     ];
 
     // =============================
-    // Conversión de tipos
+    // CONVERSIÓN DE TIPOS (CASTS)
     // =============================
     protected $casts = [
         'dFechaCarta' => 'date',
@@ -42,7 +45,7 @@ class CartaPresentacion extends Model
     ];
 
     // =============================
-    // Relaciones
+    // RELACIONES
     // =============================
 
     /**
@@ -62,7 +65,7 @@ class CartaPresentacion extends Model
     }
 
     /**
-     * Relación con los documentos (vía tabla intermedia DOCUMENTO_CARTA)
+     * Relación con los documentos (tabla intermedia DOCUMENTO_CARTA)
      */
     public function documentos()
     {
@@ -75,48 +78,54 @@ class CartaPresentacion extends Model
     }
 
     // =============================
-    // Accesores personalizados
+    // ACCESORES PERSONALIZADOS
     // =============================
 
     /**
-     * Obtener nombre legible del estado
+     * Devuelve el nombre legible del estado actual de la carta
      */
     public function getNombreEstadoAttribute()
     {
-        switch ($this->nEstado) {
-            case 0:
-                return 'Pendiente';
-            case 1:
-                return 'Activo';
-            case 2:
-                return 'Finalizado';
-            case 3:
-                return 'Anulado';
-            default:
-                return '—';
-        }
+        return match ((int) $this->nEstado) {
+            0 => 'En proceso',
+            1 => 'En coordinación',
+            2 => 'En jefatura académica',
+            3 => 'En JUA',
+            4 => 'Observado',
+            5 => 'Entregado',
+            default => '—',
+        };
+    }
+
+    /**
+     * Alias adicional para acceder como $carta->nombre_estado
+     */
+    public function getnombre_estadoAttribute()
+    {
+        return $this->getNombreEstadoAttribute();
     }
 
     // =============================
-    // Scopes útiles
+    // SCOPES ÚTILES
     // =============================
 
     /**
-     * Scope para cartas activas
+     * Scope: cartas activas (en proceso)
      */
     public function scopeActivas($query)
     {
-        return $query->where('nEstado', 1);
+        return $query->where('nEstado', 0);
     }
 
     /**
-     * Scope para ordenar por fecha de registro descendente
+     * Scope: ordenar por fecha de registro descendente
      */
     public function scopeRecientes($query)
     {
         return $query->orderByDesc('dFechaRegistro');
     }
 }
+
 
 
 

@@ -114,7 +114,7 @@ class Documento extends Model
     }
 
     /**
-     * Devuelve el estado de la carta vinculada
+     * Devuelve el estado legible de la carta vinculada
      */
     public function getEstadoCartaAttribute()
     {
@@ -126,16 +126,20 @@ class Documento extends Model
 
         if (is_numeric($carta->nEstado)) {
             return match ((int) $carta->nEstado) {
-                1 => 'Aprobado',
-                2 => 'Rechazado',
-                0 => 'Pendiente',
-                default => 'No registrado',
+                0 => 'En proceso',
+                1 => 'En coordinación',
+                2 => 'En jefatura académica',
+                3 => 'En JUA',
+                4 => 'Observado',
+                5 => 'Entregado',
+                default => '—',
             };
         }
 
-        return $carta->nEstado ?: 'No registrado';
+        return $carta->nEstado ?: '—';
     }
 }
+
 
 
 

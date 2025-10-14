@@ -219,10 +219,12 @@
 
 <script>
 $(document).ready(function() {
+    // Contadores para índices dinámicos (iniciamos con la cantidad de filas existentes)
     let indexMemorandum = {{ count($documento->cartaPresentacion) }};
     let indexSecretaria = {{ count($documento->cartaPresentacion) }};
     const fechaRegistro = "{{ date('Y-m-d') }}";
 
+    // === Mostrar tabla según tipo de documento ===
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
@@ -236,10 +238,27 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
+    // === Función para agregar fila ===
     function agregarFila(tipo, data = {}) {
         const idCarta = data.IdCartaPresentacion || '';
         const nroCarta = data.nro_carta || 'No asignado';
         const estadoCarta = data.estado_carta || 'No registrado';
+        const dni = data.dni || '';
+
+        // === Evitar duplicados ===
+        let existe = false;
+        if (tipo === 'memorandum') {
+            $('#bodyMemorandum tr').each(function() {
+                const nombreExistente = $(this).find('td').eq(2).text().trim();
+                if (nombreExistente === data.nombre) existe = true;
+            });
+        } else {
+            $('#bodySecretaria tr').each(function() {
+                const dniExistente = $(this).find('td').eq(3).text().trim();
+                if (dniExistente === dni) existe = true;
+            });
+        }
+        if (existe) return; // no agregamos duplicados
 
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
@@ -267,7 +286,7 @@ $(document).ready(function() {
                     <td>${data.nro_expediente || ''}</td>
                     <td>${data.programa || ''}</td>
                     <td>${data.nombre || ''}</td>
-                    <td>${data.dni || ''}</td>
+                    <td>${dni}</td>
                     <td>${data.modulo || ''}</td>
                     <td>${nroCarta}</td>
                     <td>${estadoCarta}</td>
@@ -285,52 +304,58 @@ $(document).ready(function() {
         }
     }
 
+    // === Buscar estudiante AJAX ===
     function buscarEstudianteAjax(query, tipo) {
         if(query.length < 2) return;
+
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
             data: { q: query },
             success: function(respuesta) {
-                if(tipo === 'memorandum') {
-                    $('#bodyMemorandum').empty();
-                    respuesta.forEach(est => agregarFila('memorandum', est));
-                } else if(tipo === 'secretaria') {
-                    $('#bodySecretaria').empty();
-                    respuesta.forEach(est => agregarFila('secretaria', est));
-                }
+                // No vaciamos la tabla, agregamos los nuevos resultados
+                respuesta.forEach(est => agregarFila(tipo, est));
             },
             error: function(err) { console.error(err); }
         });
     }
 
+    // === Botones de búsqueda y limpieza ===
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
-    });
-    $('#btnLimpiarMemorandum').click(function() {
-        $('#searchMemorandum').val('');
-        $('#bodyMemorandum').empty();
     });
 
     $('#btnBuscarSecretaria').click(function() {
         buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
     });
+
+    $('#btnLimpiarMemorandum').click(function() {
+        $('#searchMemorandum').val('');
+        $('#bodyMemorandum').empty();
+        indexMemorandum = 0;
+    });
+
     $('#btnLimpiarSecretaria').click(function() {
         $('#searchSecretaria').val('');
         $('#bodySecretaria').empty();
+        indexSecretaria = 0;
     });
 
+    // === Eliminar fila ===
     $(document).on('click', '.btnEliminar', function() {
         $(this).closest('tr').remove();
     });
 
+    // === Agregar fila manualmente ===
     $(document).on('click', '.btnAgregarFila', function() {
         const tipo = $(this).data('tipo');
         agregarFila(tipo);
     });
 });
 </script>
+
 @endsection
+
 
 
 
