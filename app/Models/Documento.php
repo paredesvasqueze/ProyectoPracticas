@@ -16,21 +16,23 @@ class Documento extends Model
     protected $primaryKey = 'IdDocumento';
     public $timestamps = false;
 
+    // =============================
+    // CAMPOS ASIGNABLES
+    // =============================
     protected $fillable = [
-        'cNumeroExpediente',   
+        'cNroDocumento',
         'dFechaDocumento',
         'cTipoDocumento',
         'dFechaEntrega',
         'eDocumentoAdjunto',
-        'IdEstudiante',
-        'IdUsuarioRegistro',
-        'dFechaRegistro',
     ];
 
+    // =============================
+    // CASTS (CONVERSIÓN DE FECHAS)
+    // =============================
     protected $casts = [
         'dFechaDocumento' => 'date',
         'dFechaEntrega'   => 'date',
-        'dFechaRegistro'  => 'datetime',
     ];
 
     // =============================
@@ -38,7 +40,7 @@ class Documento extends Model
     // =============================
 
     /**
-     * Tipo de documento (tabla CONSTANTE)
+     * Tipo de documento (Constante)
      */
     public function tipoDocumento()
     {
@@ -46,23 +48,8 @@ class Documento extends Model
     }
 
     /**
-     * Estudiante relacionado
-     */
-    public function estudiante()
-    {
-        return $this->belongsTo(Estudiante::class, 'IdEstudiante', 'IdEstudiante');
-    }
-
-    /**
-     * Supervisiones relacionadas al documento
-     */
-    public function supervisiones()
-    {
-        return $this->hasMany(DocumentoSupervision::class, 'IdDocumento', 'IdDocumento');
-    }
-
-    /**
-     * Relación con Carta de Presentación (vía tabla intermedia DOCUMENTO_CARTA)
+     * Relación muchos a muchos con CartaPresentacion
+     * mediante la tabla DOCUMENTO_CARTA
      */
     public function cartaPresentacion()
     {
@@ -71,35 +58,37 @@ class Documento extends Model
             'DOCUMENTO_CARTA',
             'IdDocumento',
             'IdCartaPresentacion'
-        )
-        ->withPivot('dFechaRegistro')
-        ->with('empresa', 'estudiante.persona'); 
+        )->withPivot('dFechaRegistro');
     }
 
     // =============================
-    // ACCESORES Y MÉTODOS DERIVADOS
+    // ACCESORES Y MÉTODOS AUXILIARES
     // =============================
 
     /**
-     * Obtener nombre completo del estudiante
+     * Devuelve el nombre completo del estudiante vinculado a la primera carta
      */
     public function getNombreEstudianteAttribute()
     {
-        return $this->estudiante
-            ? trim($this->estudiante->persona->cNombre . ' ' . $this->estudiante->persona->cApellido)
+        $carta = $this->cartaPresentacion->first();
+        return $carta && $carta->estudiante && $carta->estudiante->persona
+            ? trim($carta->estudiante->persona->cNombre . ' ' . $carta->estudiante->persona->cApellido)
             : '—';
     }
 
     /**
-     * Obtener DNI del estudiante
+     * Devuelve el DNI del estudiante vinculado
      */
     public function getDniEstudianteAttribute()
     {
-        return $this->estudiante->persona->cDNI ?? '—';
+        $carta = $this->cartaPresentacion->first();
+        return $carta && $carta->estudiante && $carta->estudiante->persona
+            ? $carta->estudiante->persona->cDNI
+            : '—';
     }
 
     /**
-     * Obtener el nombre del tipo de documento desde la tabla Constante
+     * Devuelve el nombre del tipo de documento
      */
     public function getNombreTipoDocumentoAttribute()
     {
@@ -107,7 +96,7 @@ class Documento extends Model
     }
 
     /**
-     * Determinar si el documento es de tipo Secretaría
+     * Indica si el documento pertenece al tipo Secretaría
      */
     public function isSecretaria()
     {
@@ -116,7 +105,7 @@ class Documento extends Model
     }
 
     /**
-     * Determinar si el documento es Memorándum
+     * Indica si el documento pertenece al tipo Memorándum
      */
     public function isMemorandum()
     {
@@ -125,7 +114,7 @@ class Documento extends Model
     }
 
     /**
-     * Obtener el estado real de la carta asociada (si existe)
+     * Devuelve el estado de la carta vinculada
      */
     public function getEstadoCartaAttribute()
     {
@@ -135,20 +124,24 @@ class Documento extends Model
             return 'No registrado';
         }
 
-        // Si el estado es numérico (0,1,2)
         if (is_numeric($carta->nEstado)) {
-            switch ((int) $carta->nEstado) {
-                case 1: return 'Aprobado';
-                case 2: return 'Rechazado';
-                case 0: return 'Pendiente';
-                default: return 'No registrado';
-            }
+            return match ((int) $carta->nEstado) {
+                1 => 'Aprobado',
+                2 => 'Rechazado',
+                0 => 'Pendiente',
+                default => 'No registrado',
+            };
         }
 
-        // Si es texto directo
         return $carta->nEstado ?: 'No registrado';
     }
 }
+
+
+
+
+
+
 
 
 

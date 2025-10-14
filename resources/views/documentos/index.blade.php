@@ -56,8 +56,8 @@
                         <td>{{ $doc->IdDocumento }}</td>
                         <td>{{ $doc->cNroDocumento }}</td>
                         <td>{{ $doc->nombreTipoDocumento }}</td>
-                        <td>{{ $doc->dFechaDocumento }}</td>
-                        <td>{{ $doc->dFechaEntrega }}</td>
+                        <td>{{ \Carbon\Carbon::parse($doc->dFechaDocumento)->format('Y-m-d') }}</td>
+                        <td>{{ $doc->dFechaEntrega ? \Carbon\Carbon::parse($doc->dFechaEntrega)->format('Y-m-d') : '-' }}</td>
                         <td>
                             @if($doc->eDocumentoAdjunto)
                                 <a href="{{ asset('storage/'.$doc->eDocumentoAdjunto) }}" target="_blank" class="btn btn-sm btn-outline-info">
@@ -68,13 +68,95 @@
                             @endif
                         </td>
 
-                        <!-- NUEVA COLUMNA: VER ESTUDIANTE -->
+                        <!-- Botón para ver detalle del documento en modal -->
                         <td class="text-center">
-                            <a href="{{ route('documentos.show', $doc->IdDocumento) }}" class="btn btn-info btn-sm">
+                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detalleModal{{ $doc->IdDocumento }}">
                                 <i class="bi bi-eye"></i> Ver
-                            </a>
+                            </button>
+
+                            <!-- Modal Detalle -->
+                            <div class="modal fade" id="detalleModal{{ $doc->IdDocumento }}" tabindex="-1" aria-labelledby="detalleModalLabel{{ $doc->IdDocumento }}" aria-hidden="true">
+                                <div class="modal-dialog modal-xl">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="detalleModalLabel{{ $doc->IdDocumento }}">
+                                                Detalles del Documento #{{ $doc->IdDocumento }} - {{ $doc->nombreTipoDocumento }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            @if($doc->cartaPresentacion->isNotEmpty())
+                                                <table class="table table-bordered table-striped">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            @php
+                                                                $tipo = strtolower($doc->nombreTipoDocumento);
+                                                            @endphp
+
+                                                            @if(str_contains($tipo, 'secretaria') || str_contains($tipo, 'informe'))
+                                                                <th>N° Expediente</th>
+                                                                <th>Programa</th>
+                                                                <th>Apellidos y Nombres</th>
+                                                                <th>DNI</th>
+                                                                <th>Módulo</th>
+                                                                <th>N° Carta Presentación</th>
+                                                                <th>Estado Carta</th>
+                                                                <th>Fecha Registro</th>
+                                                            @elseif(str_contains($tipo, 'memorandum') || str_contains($tipo, 'memorándum'))
+                                                                <th>N° Expediente</th>
+                                                                <th>Programa de Estudios</th>
+                                                                <th>Apellidos y Nombres</th>
+                                                                <th>Centro de Prácticas</th>
+                                                                <th>N° Carta Presentación</th>
+                                                                <th>Estado Carta</th>
+                                                                <th>Fecha Registro</th>
+                                                            @else
+                                                                <th>Alumno</th>
+                                                                <th>Número Carta</th>
+                                                            @endif
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($doc->cartaPresentacion as $carta)
+                                                            <tr>
+                                                                @if(str_contains($tipo, 'secretaria') || str_contains($tipo, 'informe'))
+                                                                    <td>{{ $carta->nNroExpediente ?? '-' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->programa)->nConstDescripcion ?? '-' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->persona)->cApellido ?? '' }} {{ optional($carta->estudiante->persona)->cNombre ?? '' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->persona)->cDNI ?? '-' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->modulo)->nConstDescripcion ?? '-' }}</td>
+                                                                    <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
+                                                                    <td>{{ $carta->estado_nombre ?? 'No registrado' }}</td>
+                                                                    <td>{{ $carta->pivot->dFechaRegistro ? \Carbon\Carbon::parse($carta->pivot->dFechaRegistro)->format('Y-m-d') : '-' }}</td>
+                                                                @elseif(str_contains($tipo, 'memorandum') || str_contains($tipo, 'memorándum'))
+                                                                    <td>{{ $carta->nNroExpediente ?? '-' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->programa)->nConstDescripcion ?? '-' }}</td>
+                                                                    <td>{{ optional($carta->estudiante->persona)->cApellido ?? '' }} {{ optional($carta->estudiante->persona)->cNombre ?? '' }}</td>
+                                                                    <td>{{ optional($carta->empresa)->cNombreEmpresa ?? '-' }}</td>
+                                                                    <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
+                                                                    <td>{{ $carta->estado_nombre ?? 'No registrado' }}</td>
+                                                                    <td>{{ $carta->pivot->dFechaRegistro ? \Carbon\Carbon::parse($carta->pivot->dFechaRegistro)->format('Y-m-d') : '-' }}</td>
+                                                                @else
+                                                                    <td>{{ optional($carta->estudiante->persona)->cApellido ?? '' }} {{ optional($carta->estudiante->persona)->cNombre ?? '' }}</td>
+                                                                    <td>{{ $carta->nNroCarta ?? '-' }}</td>
+                                                                @endif
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            @else
+                                                <p class="text-center">No hay información adicional para este tipo de documento.</p>
+                                            @endif
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
 
+                        <!-- Acciones: Editar / Eliminar -->
                         <td class="text-center">
                             <a href="{{ route('documentos.edit', $doc->IdDocumento) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil-square"></i> Editar
@@ -100,6 +182,15 @@
 
 </div>
 
+{{-- Bootstrap JS y Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
+
+
+
+
+
+
+
 

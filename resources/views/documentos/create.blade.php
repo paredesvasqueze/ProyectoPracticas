@@ -3,7 +3,7 @@
 @section('content')
 <div class="p-4">
 
-    <!-- Usuario arriba a la derecha -->
+    <!-- Usuario -->
     <div class="d-flex justify-content-end mb-3">
         <div class="text-end">
             <small>
@@ -77,11 +77,12 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="eDocumentoAdjunto" class="form-label">Adjuntar Documento (PDF opcional)</label>
-                    <input type="file" class="form-control" id="eDocumentoAdjunto" name="eDocumentoAdjunto" accept=".pdf">
+                    <label for="eDocumentoAdjunto" class="form-label">Adjuntar Documento (PDF/Word opcional)</label>
+                    <input type="file" class="form-control" id="eDocumentoAdjunto" name="eDocumentoAdjunto"
+                           accept=".pdf,.doc,.docx">
                 </div>
 
-                <!-- TABLA MEMORÁNDUM -->
+                <!-- TABLAS DINÁMICAS -->
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
@@ -103,7 +104,9 @@
                                     <th>Programa de Estudios</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>Centro de Prácticas</th>
-                                    <th>Estado</th>
+                                    <th>N° Carta Presentación</th>
+                                    <th>Estado Carta</th>
+                                    <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -112,7 +115,6 @@
                     </div>
                 </div>
 
-                <!-- TABLA INFORME A SECRETARIADO -->
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
@@ -135,7 +137,9 @@
                                     <th>Apellidos y Nombres</th>
                                     <th>DNI</th>
                                     <th>Módulo</th>
-                                    <th>Estado</th>
+                                    <th>N° Carta Presentación</th>
+                                    <th>Estado Carta</th>
+                                    <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -153,7 +157,6 @@
                         <i class="bi bi-check-circle"></i> Registrar Documento
                     </button>
                 </div>
-
             </form>
         </div>
     </div>
@@ -167,11 +170,11 @@
 $(document).ready(function() {
     let indexMemorandum = 0;
     let indexSecretaria = 0;
+    const fechaRegistro = "{{ date('Y-m-d') }}";
 
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
-
         if (tipo.includes('memorándum') || tipo.includes('memorandum')) {
             $('#tablaMemorandum').show();
         } else if (tipo.includes('informe') || tipo.includes('secretariado') || tipo.includes('secretaría')) {
@@ -182,9 +185,10 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
-    // Fila automática (estado readonly)
     function agregarFila(tipo, data = {}) {
-        const estado = data.estado_carta || 'No registrado';
+        const idCarta = data.IdCartaPresentacion || '';
+        const nroCarta = data.nNroCarta || 'No asignado';
+        const estadoCarta = data.estado_carta || 'No registrado';
 
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
@@ -193,7 +197,13 @@ $(document).ready(function() {
                     <td>${data.programa || ''}</td>
                     <td>${data.nombre || ''}</td>
                     <td>${data.centro_practicas || ''}</td>
-                    <td><input type="text" class="form-control" value="${estado}" readonly></td>
+                    <td>${nroCarta}</td>
+                    <td>${estadoCarta}</td>
+                    <td>
+                        <input type="date" class="form-control" value="${fechaRegistro}" readonly
+                            name="documento_carta_memorandum[${indexMemorandum}][dFechaRegistro]">
+                        <input type="hidden" name="documento_carta_memorandum[${indexMemorandum}][IdCartaPresentacion]" value="${idCarta}">
+                    </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -208,7 +218,13 @@ $(document).ready(function() {
                     <td>${data.nombre || ''}</td>
                     <td>${data.dni || ''}</td>
                     <td>${data.modulo || ''}</td>
-                    <td><input type="text" class="form-control" value="${estado}" readonly></td>
+                    <td>${nroCarta}</td>
+                    <td>${estadoCarta}</td>
+                    <td>
+                        <input type="date" class="form-control" value="${fechaRegistro}" readonly
+                            name="documento_carta_secretaria[${indexSecretaria}][dFechaRegistro]">
+                        <input type="hidden" name="documento_carta_secretaria[${indexSecretaria}][IdCartaPresentacion]" value="${idCarta}">
+                    </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -218,7 +234,6 @@ $(document).ready(function() {
         }
     }
 
-    // Buscar estudiante
     function buscarEstudianteAjax(query, tipo) {
         if(query.length < 2) return;
         $.ajax({
@@ -234,13 +249,10 @@ $(document).ready(function() {
                     respuesta.forEach(est => agregarFila('secretaria', est));
                 }
             },
-            error: function(err) {
-                console.error(err);
-            }
+            error: function(err) { console.error(err); }
         });
     }
 
-    // Botones búsqueda y limpiar
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
@@ -260,9 +272,23 @@ $(document).ready(function() {
     $(document).on('click', '.btnEliminar', function() {
         $(this).closest('tr').remove();
     });
+
+    $(document).on('click', '.btnAgregarFila', function() {
+        const tipo = $(this).data('tipo');
+        agregarFila(tipo);
+    });
 });
 </script>
 @endsection
+
+
+
+
+
+
+
+
+
 
 
 

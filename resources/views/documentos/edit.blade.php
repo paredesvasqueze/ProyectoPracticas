@@ -4,7 +4,7 @@
 @section('content')
 <div class="p-4">
 
-    <!-- Usuario arriba a la derecha -->
+    <!-- Usuario -->
     <div class="d-flex justify-content-end mb-3">
         <div class="text-end">
             <small>
@@ -54,7 +54,7 @@
                     <div class="col-md-6 mb-3">
                         <label for="dFechaDocumento" class="form-label">Fecha del Documento</label>
                         <input type="date" class="form-control" id="dFechaDocumento" name="dFechaDocumento"
-                               value="{{ old('dFechaDocumento', $documento->dFechaDocumento) }}" required>
+                               value="{{ old('dFechaDocumento', $documento->dFechaDocumento ? $documento->dFechaDocumento->format('Y-m-d') : '') }}" required>
                     </div>
                 </div>
 
@@ -74,24 +74,25 @@
                     <div class="col-md-6 mb-3">
                         <label for="dFechaEntrega" class="form-label">Fecha de Entrega</label>
                         <input type="date" class="form-control" id="dFechaEntrega" name="dFechaEntrega"
-                               value="{{ old('dFechaEntrega', $documento->dFechaEntrega) }}">
+                               value="{{ old('dFechaEntrega', $documento->dFechaEntrega ? $documento->dFechaEntrega->format('Y-m-d') : '') }}">
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="eDocumentoAdjunto" class="form-label">Adjuntar Documento (PDF opcional)</label>
-                    <input type="file" class="form-control" id="eDocumentoAdjunto" name="eDocumentoAdjunto" accept=".pdf">
+                    <label for="eDocumentoAdjunto" class="form-label">Adjuntar Documento (PDF/Word opcional)</label>
+                    <input type="file" class="form-control" id="eDocumentoAdjunto" name="eDocumentoAdjunto"
+                           accept=".pdf,.doc,.docx">
 
                     @if($documento->eDocumentoAdjunto)
                         <div class="mt-2">
                             <a href="{{ asset('storage/' . $documento->eDocumentoAdjunto) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-file-earmark-pdf"></i> Ver Documento Actual
+                                <i class="bi bi-file-earmark-text"></i> Ver Documento Actual
                             </a>
                         </div>
                     @endif
                 </div>
 
-                <!-- TABLA MEMORÁNDUM -->
+                <!-- TABLAS DINÁMICAS -->
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
@@ -113,15 +114,37 @@
                                     <th>Programa de Estudios</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>Centro de Prácticas</th>
+                                    <th>N° Carta Presentación</th>
+                                    <th>Estado Carta</th>
+                                    <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="bodyMemorandum"></tbody>
+                            <tbody id="bodyMemorandum">
+                                @foreach($documento->cartaPresentacion as $index => $dc)
+                                    @php $carta = $dc; @endphp
+                                    <tr>
+                                        <td>{{ $carta->nNroExpediente ?? '-' }}</td>
+                                        <td>{{ optional($carta->estudiante->programa)->nConstDescripcion ?? '-' }}</td>
+                                        <td>{{ $carta->estudiante->persona->cNombre ?? '-' }} {{ $carta->estudiante->persona->cApellido ?? '' }}</td>
+                                        <td>{{ optional($carta->empresa)->cNombreEmpresa ?? '-' }}</td>
+                                        <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
+                                        <td>{{ $carta->nEstado ?? 'No registrado' }}</td>
+                                        <td>
+                                            <input type="date" class="form-control" value="{{ $carta->pivot->dFechaRegistro ? date('Y-m-d', strtotime($carta->pivot->dFechaRegistro)) : date('Y-m-d') }}" readonly
+                                                name="documento_carta_memorandum[{{ $index }}][dFechaRegistro]">
+                                            <input type="hidden" name="documento_carta_memorandum[{{ $index }}][IdCartaPresentacion]" value="{{ $carta->IdCartaPresentacion }}">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- TABLA INFORME A SECRETARIADO -->
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
@@ -139,15 +162,39 @@
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>N° Secuencial</th>
+                                    <th>N° Expediente</th>
                                     <th>Programa</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>DNI</th>
                                     <th>Módulo</th>
+                                    <th>N° Carta Presentación</th>
+                                    <th>Estado Carta</th>
+                                    <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="bodySecretaria"></tbody>
+                            <tbody id="bodySecretaria">
+                                @foreach($documento->cartaPresentacion as $index => $dc)
+                                    @php $carta = $dc; @endphp
+                                    <tr>
+                                        <td>{{ $carta->nNroExpediente ?? '-' }}</td>
+                                        <td>{{ optional($carta->estudiante->programa)->nConstDescripcion ?? '-' }}</td>
+                                        <td>{{ $carta->estudiante->persona->cNombre ?? '-' }} {{ $carta->estudiante->persona->cApellido ?? '' }}</td>
+                                        <td>{{ $carta->estudiante->persona->cDNI ?? '-' }}</td>
+                                        <td>{{ optional($carta->estudiante->modulo)->nConstDescripcion ?? '-' }}</td>
+                                        <td>{{ $carta->nNroCarta ?? 'No asignado' }}</td>
+                                        <td>{{ $carta->nEstado ?? 'No registrado' }}</td>
+                                        <td>
+                                            <input type="date" class="form-control" value="{{ $carta->pivot->dFechaRegistro ? date('Y-m-d', strtotime($carta->pivot->dFechaRegistro)) : date('Y-m-d') }}" readonly
+                                                name="documento_carta_secretaria[{{ $index }}][dFechaRegistro]">
+                                            <input type="hidden" name="documento_carta_secretaria[{{ $index }}][IdCartaPresentacion]" value="{{ $carta->IdCartaPresentacion }}">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -157,11 +204,10 @@
                     <a href="{{ route('documentos.index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Guardar Cambios
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar Cambios
                     </button>
                 </div>
-
             </form>
         </div>
     </div>
@@ -173,15 +219,13 @@
 
 <script>
 $(document).ready(function() {
+    let indexMemorandum = {{ count($documento->cartaPresentacion) }};
+    let indexSecretaria = {{ count($documento->cartaPresentacion) }};
+    const fechaRegistro = "{{ date('Y-m-d') }}";
 
-    let indexMemorandum = 0;
-    let indexSecretaria = 0;
-
-    // Mostrar tabla según tipo seleccionado
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
-
         if (tipo.includes('memorándum') || tipo.includes('memorandum')) {
             $('#tablaMemorandum').show();
         } else if (tipo.includes('informe') || tipo.includes('secretariado') || tipo.includes('secretaría')) {
@@ -192,15 +236,25 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
-    // Agregar fila
     function agregarFila(tipo, data = {}) {
+        const idCarta = data.IdCartaPresentacion || '';
+        const nroCarta = data.nro_carta || 'No asignado';
+        const estadoCarta = data.estado_carta || 'No registrado';
+
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
                 <tr>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][nro_expediente]" class="form-control" value="${data.nro_expediente || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][programa]" class="form-control" value="${data.programa || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][nombre]" class="form-control" value="${data.nombre || ''}" required></td>
-                    <td><input type="text" name="memorandum[${indexMemorandum}][centro_practicas]" class="form-control" value="${data.centro_practicas || ''}" required></td>
+                    <td>${data.nro_expediente || ''}</td>
+                    <td>${data.programa || ''}</td>
+                    <td>${data.nombre || ''}</td>
+                    <td>${data.centro_practicas || ''}</td>
+                    <td>${nroCarta}</td>
+                    <td>${estadoCarta}</td>
+                    <td>
+                        <input type="date" class="form-control" value="${fechaRegistro}" readonly
+                            name="documento_carta_memorandum[${indexMemorandum}][dFechaRegistro]">
+                        <input type="hidden" name="documento_carta_memorandum[${indexMemorandum}][IdCartaPresentacion]" value="${idCarta}">
+                    </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -210,11 +264,18 @@ $(document).ready(function() {
         } else if (tipo === 'secretaria') {
             $('#bodySecretaria').append(`
                 <tr>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][nro_secuencial]" class="form-control" value="${data.nro_secuencial || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][programa]" class="form-control" value="${data.programa || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][nombre]" class="form-control" value="${data.nombre || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][dni]" class="form-control" maxlength="8" value="${data.dni || ''}" required></td>
-                    <td><input type="text" name="secretaria[${indexSecretaria}][modulo]" class="form-control" value="${data.modulo || ''}" required></td>
+                    <td>${data.nro_expediente || ''}</td>
+                    <td>${data.programa || ''}</td>
+                    <td>${data.nombre || ''}</td>
+                    <td>${data.dni || ''}</td>
+                    <td>${data.modulo || ''}</td>
+                    <td>${nroCarta}</td>
+                    <td>${estadoCarta}</td>
+                    <td>
+                        <input type="date" class="form-control" value="${fechaRegistro}" readonly
+                            name="documento_carta_secretaria[${indexSecretaria}][dFechaRegistro]">
+                        <input type="hidden" name="documento_carta_secretaria[${indexSecretaria}][IdCartaPresentacion]" value="${idCarta}">
+                    </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -224,19 +285,8 @@ $(document).ready(function() {
         }
     }
 
-    // Botón agregar fila
-    $(document).on('click', '.btnAgregarFila', function() {
-        agregarFila($(this).data('tipo'));
-    });
-
-    // Eliminar fila
-    $(document).on('click', '.btnEliminar', function() {
-        $(this).closest('tr').remove();
-    });
-
-    // 🔍 Función búsqueda AJAX
     function buscarEstudianteAjax(query, tipo) {
-        if(query.length < 2) return; // mínimo 2 caracteres
+        if(query.length < 2) return;
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
@@ -244,50 +294,47 @@ $(document).ready(function() {
             success: function(respuesta) {
                 if(tipo === 'memorandum') {
                     $('#bodyMemorandum').empty();
-                    respuesta.forEach(function(est) {
-                        agregarFila('memorandum', est);
-                    });
+                    respuesta.forEach(est => agregarFila('memorandum', est));
                 } else if(tipo === 'secretaria') {
                     $('#bodySecretaria').empty();
-                    respuesta.forEach(function(est) {
-                        agregarFila('secretaria', {
-                            nro_secuencial: est.id,
-                            programa: est.programa,
-                            nombre: est.nombre,
-                            dni: est.dni,
-                            modulo: est.modulo
-                        });
-                    });
+                    respuesta.forEach(est => agregarFila('secretaria', est));
                 }
             },
-            error: function(err) {
-                console.error(err);
-            }
+            error: function(err) { console.error(err); }
         });
     }
 
-    // Memorandum: buscar y limpiar
     $('#btnBuscarMemorandum').click(function() {
-        let query = $('#searchMemorandum').val();
-        buscarEstudianteAjax(query, 'memorandum');
+        buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
     $('#btnLimpiarMemorandum').click(function() {
         $('#searchMemorandum').val('');
         $('#bodyMemorandum').empty();
     });
 
-    // Secretaria: buscar y limpiar
     $('#btnBuscarSecretaria').click(function() {
-        let query = $('#searchSecretaria').val();
-        buscarEstudianteAjax(query, 'secretaria');
+        buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
     });
     $('#btnLimpiarSecretaria').click(function() {
         $('#searchSecretaria').val('');
         $('#bodySecretaria').empty();
     });
 
+    $(document).on('click', '.btnEliminar', function() {
+        $(this).closest('tr').remove();
+    });
+
+    $(document).on('click', '.btnAgregarFila', function() {
+        const tipo = $(this).data('tipo');
+        agregarFila(tipo);
+    });
 });
 </script>
 @endsection
+
+
+
+
+
 
 

@@ -121,8 +121,11 @@
                         <label class="form-label">Estado</label>
                         <select name="nEstado" class="form-select">
                             <option value="En proceso" {{ old('nEstado', $carta->nEstado) == 'En proceso' ? 'selected' : '' }}>En proceso</option>
-                            <option value="Finalizado" {{ old('nEstado', $carta->nEstado) == 'Finalizado' ? 'selected' : '' }}>Finalizado</option>
+                            <option value="En coordinación" {{ old('nEstado', $carta->nEstado) == 'En coordinación' ? 'selected' : '' }}>En coordinación</option>
+                            <option value="En jefatura académica" {{ old('nEstado', $carta->nEstado) == 'En jefatura académica' ? 'selected' : '' }}>En jefatura académica</option>
+                            <option value="En JUA" {{ old('nEstado', $carta->nEstado) == 'En JUA' ? 'selected' : '' }}>En JUA</option>
                             <option value="Observado" {{ old('nEstado', $carta->nEstado) == 'Observado' ? 'selected' : '' }}>Observado</option>
+                            <option value="Entregado" {{ old('nEstado', $carta->nEstado) == 'Entregado' ? 'selected' : '' }}>Entregado</option>
                         </select>
                     </div>
                 </div>

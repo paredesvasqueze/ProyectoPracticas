@@ -64,12 +64,7 @@
                         <i class="bi bi-journal-check me-2"></i> Supervisiones
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('documento_supervisiones*') ? 'active' : '' }}" 
-                       href="{{ route('documento_supervisiones.index') }}">
-                        <i class="bi bi-folder-symlink-fill me-2"></i> Documento de Carta
-                    </a>
-                </li>
+                
             </ul>
         </div>
 

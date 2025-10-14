@@ -62,7 +62,6 @@ class EstudianteController extends Controller
         ]);
 
         DB::beginTransaction();
-
         try {
             $persona = Persona::create([
                 'cNombre'   => strtoupper($request->cNombre),
@@ -81,7 +80,6 @@ class EstudianteController extends Controller
             ]);
 
             DB::commit();
-
             return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante registrado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -124,7 +122,6 @@ class EstudianteController extends Controller
         ]);
 
         DB::beginTransaction();
-
         try {
             $estudiante->persona->update([
                 'cNombre'   => strtoupper($request->cNombre),
@@ -142,7 +139,6 @@ class EstudianteController extends Controller
             ]);
 
             DB::commit();
-
             return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante actualizado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -156,7 +152,6 @@ class EstudianteController extends Controller
     public function destroy($id)
     {
         DB::beginTransaction();
-
         try {
             $estudiante = Estudiante::with('persona')->findOrFail($id);
 
@@ -167,7 +162,6 @@ class EstudianteController extends Controller
             $estudiante->delete();
 
             DB::commit();
-
             return redirect()->route('estudiantes.index')->with('success', '🗑️ Estudiante eliminado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -176,7 +170,7 @@ class EstudianteController extends Controller
     }
 
     /**
-     * 🔍 Método AJAX para búsqueda de estudiantes (para autocompletar).
+     * 🔍 Método AJAX para búsqueda de estudiantes (autocompletar) con IdCartaPresentacion.
      */
     public function buscar(Request $request)
     {
@@ -199,25 +193,27 @@ class EstudianteController extends Controller
                 $carta = optional($est->cartaPresentacion);
 
                 return [
-                    'id'               => $est->IdEstudiante,
-                    'dni'              => optional($est->persona)->cDNI ?? '',
-                    'nombre'           => trim((optional($est->persona)->cApellido ?? '') . ' ' . (optional($est->persona)->cNombre ?? '')),
-                    'programa'         => optional($est->programa)->nConstDescripcion ?? '',
-                    'modulo'           => optional($est->modulo)->nConstDescripcion ?? '',
-                    'nro_expediente'   => $carta->nNroExpediente ?? '—',
-                    'centro_practicas' => optional($carta->empresa)->cNombreEmpresa ?? '—',
-                    'estado'           => match ($carta->nEstado ?? 0) {
-                        1 => 'Pendiente',
-                        2 => 'Enviado',
-                        3 => 'Aprobado',
-                        default => 'Pendiente',
-                    },
+                    'id'                    => $est->IdEstudiante,
+                    'dni'                   => optional($est->persona)->cDNI ?? '',
+                    'nombre'                => trim((optional($est->persona)->cApellido ?? '') . ' ' . (optional($est->persona)->cNombre ?? '')),
+                    'programa'              => optional($est->programa)->nConstDescripcion ?? '',
+                    'modulo'                => optional($est->modulo)->nConstDescripcion ?? '',
+                    'nro_expediente'        => $carta->nNroExpediente ?? '—',
+                    'nro_carta'             => $carta->nNroCarta ?? '—',
+                    'centro_practicas'      => optional($carta->empresa)->cNombreEmpresa ?? '—',
+                    'estado_carta'          => $carta->nEstado ?? 'Pendiente',
+
+                    // 🔑 Importante: IdCartaPresentacion para enviar al registro de documentos
+                    'IdCartaPresentacion'   => $carta->IdCartaPresentacion ?? null,
                 ];
             });
 
         return response()->json($estudiantes);
     }
 }
+
+
+
 
 
 

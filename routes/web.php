@@ -9,7 +9,7 @@ use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\DocumentoController;
-use App\Http\Controllers\DocumentoSupervisionController;
+use App\Http\Controllers\DocumentoCartaController;
 
 // ===============================
 // Rutas públicas
@@ -57,9 +57,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Documentos
     Route::resource('documentos', DocumentoController::class);
-
-    // Documento Supervisiones
-    Route::resource('documento_supervisiones', DocumentoSupervisionController::class);
 
     // ===============================
     // 🔍 Rutas especiales de búsqueda AJAX
