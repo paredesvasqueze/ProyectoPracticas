@@ -135,8 +135,14 @@
                     <input type="file" name="adjunto" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
                     @if($carta->adjunto)
                         <p class="mt-2">
-                            Archivo actual: 
-                            <a href="{{ asset('storage/'.$carta->adjunto) }}" target="_blank">Ver documento</a>
+                            <a href="{{ asset('storage/'.$carta->adjunto) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-earmark-text"></i> Ver Documento Actual
+                            </a>
+                            <!--
+                            <a href="{{ asset('storage/'.$carta->adjunto) }}" download class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-download"></i> Descargar
+                            </a>
+                            -->
                         </p>
                     @endif
                 </div>

@@ -110,6 +110,7 @@
                                 <a href="{{ route('cartas.edit', $carta->IdCartaPresentacion) }}" class="btn btn-warning btn-sm">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
+                                <!--
                                 <form action="{{ route('cartas.destroy', $carta->IdCartaPresentacion) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -117,6 +118,7 @@
                                         <i class="bi bi-trash"></i> Eliminar
                                     </button>
                                 </form>
+                                -->
                             </td>
                         </tr>
                     @empty

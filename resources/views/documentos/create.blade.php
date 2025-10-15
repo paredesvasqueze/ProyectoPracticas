@@ -86,9 +86,10 @@
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
-                        <button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="memorandum">
+                        <!--<button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="memorandum">
                             <i class="bi bi-plus-circle"></i> Agregar Fila
                         </button>
+                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
@@ -118,9 +119,11 @@
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
+                        <!--
                         <button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="secretaria">
                             <i class="bi bi-plus-circle"></i> Agregar Fila
                         </button>
+                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">

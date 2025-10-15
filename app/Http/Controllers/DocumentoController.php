@@ -35,7 +35,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Mostrar formulario de creación
+     * Formulario de creación
      */
     public function create()
     {
@@ -62,54 +62,45 @@ class DocumentoController extends Controller
             'cTipoDocumento'  => 'required|integer',
             'dFechaEntrega'   => 'nullable|date',
             'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'IdCartaPresentacion' => 'nullable|integer',
-            'documento_carta_memorandum' => 'nullable|array',
-            'documento_carta_secretaria' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
-
         try {
-            // Procesar archivo adjunto
-            $archivo = null;
+            // === Guardar archivo si existe ===
+            $rutaArchivo = null;
             if ($request->hasFile('eDocumentoAdjunto')) {
-                $archivo = file_get_contents($request->file('eDocumentoAdjunto')->getRealPath());
+                $archivo = $request->file('eDocumentoAdjunto');
+                $nombreArchivo = time() . '_' . $archivo->getClientOriginalName();
+                $rutaArchivo = $archivo->storeAs('public/documentos', $nombreArchivo);
             }
 
-            // Crear documento
+            // === Crear el documento ===
             $documento = Documento::create([
                 'cNroDocumento'   => $request->cNroDocumento,
                 'dFechaDocumento' => $request->dFechaDocumento,
                 'cTipoDocumento'  => $request->cTipoDocumento,
-                'dFechaEntrega'   => $request->dFechaEntrega ?? null,
-                'eDocumentoAdjunto' => $archivo,
+                'dFechaEntrega'   => $request->dFechaEntrega,
+                'eDocumentoAdjunto' => $rutaArchivo ? str_replace('public/', 'storage/', $rutaArchivo) : null,
             ]);
 
             $fechaServidor = Carbon::now()->toDateString();
+            $relaciones = collect();
 
-            // Insertar relaciones dinámicas (memorandum / secretaría)
+            // === Insertar relaciones sin duplicar ===
             foreach (['documento_carta_memorandum', 'documento_carta_secretaria'] as $tipo) {
-                if ($request->filled($tipo) && is_array($request->$tipo)) {
+                if ($request->has($tipo)) {
                     foreach ($request->$tipo as $fila) {
                         $idCarta = $fila['IdCartaPresentacion'] ?? null;
-                        if (!empty($idCarta)) {
+                        if ($idCarta && !$relaciones->contains($idCarta)) {
                             DB::table('DOCUMENTO_CARTA')->insert([
                                 'IdDocumento' => $documento->IdDocumento,
                                 'IdCartaPresentacion' => $idCarta,
                                 'dFechaRegistro' => $fechaServidor,
                             ]);
+                            $relaciones->push($idCarta);
                         }
                     }
                 }
-            }
-
-            // Insertar relación simple (IdCartaPresentacion)
-            if ($request->filled('IdCartaPresentacion') && !empty($request->IdCartaPresentacion)) {
-                DB::table('DOCUMENTO_CARTA')->insert([
-                    'IdDocumento' => $documento->IdDocumento,
-                    'IdCartaPresentacion' => $request->IdCartaPresentacion,
-                    'dFechaRegistro' => $fechaServidor,
-                ]);
             }
 
             DB::commit();
@@ -121,7 +112,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Mostrar formulario de edición
+     * Formulario de edición
      */
     public function edit($id)
     {
@@ -150,57 +141,48 @@ class DocumentoController extends Controller
             'cTipoDocumento'  => 'required|integer',
             'dFechaEntrega'   => 'nullable|date',
             'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'IdCartaPresentacion' => 'nullable|integer',
-            'documento_carta_memorandum' => 'nullable|array',
-            'documento_carta_secretaria' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
-
         try {
             $documento = Documento::findOrFail($id);
 
-            // Actualizar archivo adjunto si existe
+            // === Actualizar campos ===
+            $documento->cNroDocumento = $request->cNroDocumento;
+            $documento->dFechaDocumento = $request->dFechaDocumento;
+            $documento->cTipoDocumento = $request->cTipoDocumento;
+            $documento->dFechaEntrega = $request->dFechaEntrega;
+
+            // === Actualizar archivo si hay uno nuevo ===
             if ($request->hasFile('eDocumentoAdjunto')) {
-                $documento->eDocumentoAdjunto = file_get_contents($request->file('eDocumentoAdjunto')->getRealPath());
+                $archivo = $request->file('eDocumentoAdjunto');
+                $nombreArchivo = time() . '_' . $archivo->getClientOriginalName();
+                $rutaArchivo = $archivo->storeAs('public/documentos', $nombreArchivo);
+                $documento->eDocumentoAdjunto = str_replace('public/', 'storage/', $rutaArchivo);
             }
 
-            // Actualizar datos principales
-            $documento->update([
-                'cNroDocumento'   => $request->cNroDocumento,
-                'dFechaDocumento' => $request->dFechaDocumento,
-                'cTipoDocumento'  => $request->cTipoDocumento,
-                'dFechaEntrega'   => $request->dFechaEntrega ?? $documento->dFechaEntrega,
-            ]);
+            $documento->save();
 
-            // Eliminar relaciones previas
+            // === Actualizar relaciones ===
             DB::table('DOCUMENTO_CARTA')->where('IdDocumento', $documento->IdDocumento)->delete();
 
             $fechaServidor = Carbon::now()->toDateString();
+            $relaciones = collect();
 
-            // Insertar nuevas relaciones dinámicas
             foreach (['documento_carta_memorandum', 'documento_carta_secretaria'] as $tipo) {
-                if ($request->filled($tipo) && is_array($request->$tipo)) {
+                if ($request->has($tipo)) {
                     foreach ($request->$tipo as $fila) {
                         $idCarta = $fila['IdCartaPresentacion'] ?? null;
-                        if (!empty($idCarta)) {
+                        if ($idCarta && !$relaciones->contains($idCarta)) {
                             DB::table('DOCUMENTO_CARTA')->insert([
                                 'IdDocumento' => $documento->IdDocumento,
                                 'IdCartaPresentacion' => $idCarta,
                                 'dFechaRegistro' => $fechaServidor,
                             ]);
+                            $relaciones->push($idCarta);
                         }
                     }
                 }
-            }
-
-            // Insertar relación simple
-            if ($request->filled('IdCartaPresentacion') && !empty($request->IdCartaPresentacion)) {
-                DB::table('DOCUMENTO_CARTA')->insert([
-                    'IdDocumento' => $documento->IdDocumento,
-                    'IdCartaPresentacion' => $request->IdCartaPresentacion,
-                    'dFechaRegistro' => $fechaServidor,
-                ]);
             }
 
             DB::commit();
@@ -217,14 +199,13 @@ class DocumentoController extends Controller
     public function destroy($id)
     {
         DB::beginTransaction();
-
         try {
             $documento = Documento::findOrFail($id);
 
-            // Eliminar relaciones con cartas
+            // Eliminar relaciones
             DB::table('DOCUMENTO_CARTA')->where('IdDocumento', $documento->IdDocumento)->delete();
 
-            // Eliminar documento
+            // Eliminar registro
             $documento->delete();
 
             DB::commit();
@@ -235,15 +216,3 @@ class DocumentoController extends Controller
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -85,9 +85,14 @@
 
                     @if($documento->eDocumentoAdjunto)
                         <div class="mt-2">
-                            <a href="{{ asset('storage/' . $documento->eDocumentoAdjunto) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <a href="{{ asset($documento->eDocumentoAdjunto) }}" target="_blank" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-file-earmark-text"></i> Ver Documento Actual
                             </a>
+                            <!--
+                            <a href="{{ asset($documento->eDocumentoAdjunto) }}" download class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-download"></i> Descargar
+                            </a>
+                            -->
                         </div>
                     @endif
                 </div>
@@ -96,9 +101,10 @@
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
-                        <button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="memorandum">
+                        <!--<button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="memorandum">
                             <i class="bi bi-plus-circle"></i> Agregar Fila
                         </button>
+                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
@@ -148,9 +154,11 @@
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
+                        <!--
                         <button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="secretaria">
                             <i class="bi bi-plus-circle"></i> Agregar Fila
                         </button>
+                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
@@ -219,12 +227,10 @@
 
 <script>
 $(document).ready(function() {
-    // Contadores para índices dinámicos (iniciamos con la cantidad de filas existentes)
     let indexMemorandum = {{ count($documento->cartaPresentacion) }};
     let indexSecretaria = {{ count($documento->cartaPresentacion) }};
     const fechaRegistro = "{{ date('Y-m-d') }}";
 
-    // === Mostrar tabla según tipo de documento ===
     function mostrarTabla() {
         let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
         $('.tabla-dinamica').hide();
@@ -238,14 +244,12 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
-    // === Función para agregar fila ===
     function agregarFila(tipo, data = {}) {
         const idCarta = data.IdCartaPresentacion || '';
         const nroCarta = data.nro_carta || 'No asignado';
         const estadoCarta = data.estado_carta || 'No registrado';
         const dni = data.dni || '';
 
-        // === Evitar duplicados ===
         let existe = false;
         if (tipo === 'memorandum') {
             $('#bodyMemorandum tr').each(function() {
@@ -258,7 +262,7 @@ $(document).ready(function() {
                 if (dniExistente === dni) existe = true;
             });
         }
-        if (existe) return; // no agregamos duplicados
+        if (existe) return;
 
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
@@ -304,7 +308,6 @@ $(document).ready(function() {
         }
     }
 
-    // === Buscar estudiante AJAX ===
     function buscarEstudianteAjax(query, tipo) {
         if(query.length < 2) return;
 
@@ -313,14 +316,12 @@ $(document).ready(function() {
             type: "GET",
             data: { q: query },
             success: function(respuesta) {
-                // No vaciamos la tabla, agregamos los nuevos resultados
                 respuesta.forEach(est => agregarFila(tipo, est));
             },
             error: function(err) { console.error(err); }
         });
     }
 
-    // === Botones de búsqueda y limpieza ===
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
@@ -341,12 +342,10 @@ $(document).ready(function() {
         indexSecretaria = 0;
     });
 
-    // === Eliminar fila ===
     $(document).on('click', '.btnEliminar', function() {
         $(this).closest('tr').remove();
     });
 
-    // === Agregar fila manualmente ===
     $(document).on('click', '.btnAgregarFila', function() {
         const tipo = $(this).data('tipo');
         agregarFila(tipo);
@@ -355,11 +354,3 @@ $(document).ready(function() {
 </script>
 
 @endsection
-
-
-
-
-
-
-
-

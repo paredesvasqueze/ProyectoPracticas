@@ -60,7 +60,7 @@
                         <td>{{ $doc->dFechaEntrega ? \Carbon\Carbon::parse($doc->dFechaEntrega)->format('Y-m-d') : '-' }}</td>
                         <td>
                             @if($doc->eDocumentoAdjunto)
-                                <a href="{{ asset('storage/'.$doc->eDocumentoAdjunto) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <a href="{{ asset($doc->eDocumentoAdjunto) }}" target="_blank" class="btn btn-sm btn-outline-info">
                                     <i class="bi bi-file-earmark-arrow-down"></i> Ver
                                 </a>
                             @else
@@ -161,6 +161,7 @@
                             <a href="{{ route('documentos.edit', $doc->IdDocumento) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>
+                            <!--
                             <form action="{{ route('documentos.destroy', $doc->IdDocumento) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
@@ -168,6 +169,7 @@
                                     <i class="bi bi-trash"></i> Eliminar
                                 </button>
                             </form>
+                            -->
                         </td>
                     </tr>
                     @empty
@@ -186,17 +188,3 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
-
-
-
-
-
-
-
-
-
-
-
-
-
-
