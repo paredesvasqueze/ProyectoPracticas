@@ -31,7 +31,7 @@ class CartaPresentacion extends Model
         'IdEmpresa',
         'nEstado',
         'dFechaRegistro',
-        'adjunto'
+        'adjunto',
     ];
 
     // =============================
@@ -49,7 +49,7 @@ class CartaPresentacion extends Model
     // =============================
 
     /**
-     * Relación con el estudiante
+     * Una carta pertenece a un estudiante
      */
     public function estudiante()
     {
@@ -57,7 +57,7 @@ class CartaPresentacion extends Model
     }
 
     /**
-     * Relación con la empresa
+     * Una carta pertenece a una empresa
      */
     public function empresa()
     {
@@ -75,6 +75,14 @@ class CartaPresentacion extends Model
             'IdCartaPresentacion',
             'IdDocumento'
         )->withPivot('dFechaRegistro');
+    }
+
+    /**
+     * Relación con la supervisión (una carta puede tener una supervisión)
+     */
+    public function supervision()
+    {
+        return $this->hasOne(Supervision::class, 'IdCartaPresentacion', 'IdCartaPresentacion');
     }
 
     // =============================
@@ -97,16 +105,14 @@ class CartaPresentacion extends Model
         };
     }
 
-    /**
-     * Alias adicional para acceder como $carta->nombre_estado
-     */
+    // Alias adicional (por si se accede como $carta->nombre_estado)
     public function getnombre_estadoAttribute()
     {
         return $this->getNombreEstadoAttribute();
     }
 
     // =============================
-    // SCOPES ÚTILES
+    // SCOPES PERSONALIZADOS
     // =============================
 
     /**
@@ -124,7 +130,37 @@ class CartaPresentacion extends Model
     {
         return $query->orderByDesc('dFechaRegistro');
     }
+
+    /**
+     * Scope: cartas con supervisión finalizada (para INFORME)
+     * Solo las que tienen supervisión con nEstado = 2
+     */
+    public function scopeConSupervisionFinalizada($query)
+    {
+        return $query->whereHas('supervision', function ($q) {
+            $q->where('nEstado', 2);
+        });
+    }
+
+    /**
+     * Scope: cartas sin supervisión finalizada (para MEMORÁNDUM)
+     * Incluye las que no tienen supervisión o las que tienen nEstado distinto de 2
+     */
+    public function scopeSinSupervisionFinalizada($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereDoesntHave('supervision')
+              ->orWhereHas('supervision', function ($sub) {
+                  $sub->where('nEstado', '!=', 2);
+              });
+        });
+    }
 }
+
+
+
+
+
 
 
 

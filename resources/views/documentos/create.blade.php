@@ -82,14 +82,10 @@
                            accept=".pdf,.doc,.docx">
                 </div>
 
-                <!-- TABLAS DINÁMICAS -->
+                <!-- TABLA MEMORÁNDUM (SIN SUPERVISIÓN) -->
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
-                        <!--<button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="memorandum">
-                            <i class="bi bi-plus-circle"></i> Agregar Fila
-                        </button>
-                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
@@ -102,11 +98,11 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>N° Expediente</th>
-                                    <th>Programa de Estudios</th>
+                                    <th>Programa</th>
                                     <th>Apellidos y Nombres</th>
                                     <th>Centro de Prácticas</th>
-                                    <th>N° Carta Presentación</th>
-                                    <th>Estado Carta</th>
+                                    <th>N° Carta</th>
+                                    <th>Estado</th>
                                     <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
@@ -116,14 +112,10 @@
                     </div>
                 </div>
 
+                <!-- TABLA INFORME A SECRETARIADO (CON SUPERVISIÓN) -->
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
-                        <!--
-                        <button type="button" class="btn btn-light btn-sm btnAgregarFila" data-tipo="secretaria">
-                            <i class="bi bi-plus-circle"></i> Agregar Fila
-                        </button>
-                        -->
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
@@ -140,8 +132,8 @@
                                     <th>Apellidos y Nombres</th>
                                     <th>DNI</th>
                                     <th>Módulo</th>
-                                    <th>N° Carta Presentación</th>
-                                    <th>Estado Carta</th>
+                                    <th>N° Carta</th>
+                                    <th>Estado</th>
                                     <th>Fecha Registro</th>
                                     <th>Acción</th>
                                 </tr>
@@ -189,28 +181,41 @@ $(document).ready(function() {
     mostrarTabla();
     $('#cTipoDocumento').on('change', mostrarTabla);
 
-    // === Agregar fila ===
+    // === Comprueba si IdCarta ya está en la tabla indicada ===
+    function yaExisteCartaEnTabla(tipo, idCarta, dni, nombre) {
+        if (!idCarta) {
+            // fallback: buscar por dni o nombre en la tabla correspondiente
+            if (tipo === 'memorandum') {
+                return $('#bodyMemorandum tr').filter(function() {
+                    return $(this).find('td').eq(2).text().trim() === nombre || $(this).find('td').eq(3).text().trim() === dni;
+                }).length > 0;
+            } else {
+                return $('#bodySecretaria tr').filter(function() {
+                    return $(this).find('td').eq(3).text().trim() === dni || $(this).find('td').eq(2).text().trim() === nombre;
+                }).length > 0;
+            }
+        } else {
+            // buscar input hidden con ese IdCartaPresentacion dentro del tbody correspondiente
+            if (tipo === 'memorandum') {
+                return $('#bodyMemorandum').find('input[type="hidden"][value="'+idCarta+'"]').length > 0;
+            } else {
+                return $('#bodySecretaria').find('input[type="hidden"][value="'+idCarta+'"]').length > 0;
+            }
+        }
+    }
+
+    // === Agregar fila a la tabla ===
     function agregarFila(tipo, data = {}) {
         const idCarta = data.IdCartaPresentacion || '';
         const nroCarta = data.nro_carta || 'No asignado';
         const estadoCarta = data.estado_carta || 'No registrado';
         const dni = data.dni || '';
+        const nombre = data.nombre || '';
 
-        // Verificar si ya existe el alumno (por DNI o IdCarta)
-        let existe = false;
-        if (tipo === 'memorandum') {
-            $('#bodyMemorandum tr').each(function() {
-                const dniExistente = $(this).find('td').eq(2).text().trim(); // Apellidos y Nombres (posición 2)
-                if (dniExistente === data.nombre) existe = true;
-            });
-        } else {
-            $('#bodySecretaria tr').each(function() {
-                const dniExistente = $(this).find('td').eq(3).text().trim(); // DNI (posición 3)
-                if (dniExistente === dni) existe = true;
-            });
+        // Evitar duplicados usando IdCarta si está; si no, fallback a dni/nombre
+        if (yaExisteCartaEnTabla(tipo, idCarta, dni, nombre)) {
+            return; // ya existe, no agregar
         }
-
-        if (existe) return; // Evita duplicados
 
         if (tipo === 'memorandum') {
             $('#bodyMemorandum').append(`
@@ -234,7 +239,7 @@ $(document).ready(function() {
                 </tr>
             `);
             indexMemorandum++;
-        } else if (tipo === 'secretaria') {
+        } else {
             $('#bodySecretaria').append(`
                 <tr>
                     <td>${data.nro_expediente || ''}</td>
@@ -267,11 +272,9 @@ $(document).ready(function() {
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
-            data: { q: query },
+            data: { q: query, tipo: tipo }, // enviamos tipo para que backend filtre según memorándum/secretaria
             success: function(respuesta) {
-                console.log('Respuesta AJAX buscar.estudiante:', respuesta);
-
-                // Ya no vaciamos la tabla -> se acumulan los resultados
+                // respuesta = array de estudiantes; agregar solo los que no están en la tabla
                 respuesta.forEach(est => agregarFila(tipo, est));
             },
             error: function(err) {
@@ -280,7 +283,7 @@ $(document).ready(function() {
         });
     }
 
-    // === Botones de búsqueda y limpieza ===
+    // === Botones buscar / limpiar ===
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
@@ -289,42 +292,21 @@ $(document).ready(function() {
         buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
     });
 
+    // Limpiar solo el campo de búsqueda (no la tabla)
     $('#btnLimpiarMemorandum').click(function() {
-        $('#searchMemorandum').val('');
-        $('#bodyMemorandum').empty();
-        indexMemorandum = 0;
+        $('#searchMemorandum').val('').focus();
     });
 
     $('#btnLimpiarSecretaria').click(function() {
-        $('#searchSecretaria').val('');
-        $('#bodySecretaria').empty();
-        indexSecretaria = 0;
+        $('#searchSecretaria').val('').focus();
     });
 
     // === Eliminar fila ===
     $(document).on('click', '.btnEliminar', function() {
         $(this).closest('tr').remove();
     });
-
-    // === Agregar fila manualmente ===
-    $(document).on('click', '.btnAgregarFila', function() {
-        const tipo = $(this).data('tipo');
-        agregarFila(tipo);
-    });
 });
 </script>
 
 @endsection
-
-
-
-
-
-
-
-
-
-
-
-
 

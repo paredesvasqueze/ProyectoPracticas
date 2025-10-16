@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Documento;
-use App\Models\DocumentoCarta;
 use App\Models\Constante;
 use App\Models\CartaPresentacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
 class DocumentoController extends Controller
 {
     /**
-     * Mostrar listado de documentos
+     * 📄 Mostrar listado de documentos (búsqueda por DNI del estudiante)
      */
     public function index(Request $request)
     {
@@ -35,33 +35,53 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Formulario de creación
+     * 📝 Formulario de creación de documento
      */
-    public function create()
+    public function create(Request $request)
     {
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
-            ->where('nConstEstado', '1')
+            ->where('nConstEstado', 1)
             ->orderBy('nConstOrden')
             ->pluck('nConstDescripcion', 'IdConstante');
 
-        $cartas = CartaPresentacion::with(['estudiante.persona'])
-            ->orderByDesc('dFechaRegistro')
-            ->get();
+        $tipo = $request->input('tipo'); // 'informe' o 'memorandum'
 
-        return view('documentos.create', compact('tiposDocumento', 'cartas'));
+        // === FILTRADO SEGÚN EL TIPO ===
+        if ($tipo === 'informe') {
+            // ✅ Solo cartas con supervisión finalizada (nEstado = 2)
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->conSupervisionFinalizada()
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+
+        } elseif ($tipo === 'memorandum') {
+            // ✅ Solo cartas sin supervisión finalizada (sin registro o nEstado != 2)
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->sinSupervisionFinalizada()
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+
+        } else {
+            // 🔄 Por defecto: mostrar todas las cartas
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+        }
+
+        return view('documentos.create', compact('tiposDocumento', 'cartas', 'tipo'));
     }
 
     /**
-     * Guardar nuevo documento
+     * 💾 Guardar nuevo documento
      */
     public function store(Request $request)
     {
         $request->validate([
-            'cNroDocumento'   => 'required|string|max:50',
-            'dFechaDocumento' => 'required|date',
-            'cTipoDocumento'  => 'required|integer',
-            'dFechaEntrega'   => 'nullable|date',
-            'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'cNroDocumento'       => 'required|string|max:50',
+            'dFechaDocumento'     => 'required|date',
+            'cTipoDocumento'      => 'required|integer',
+            'dFechaEntrega'       => 'nullable|date',
+            'eDocumentoAdjunto'   => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -74,28 +94,28 @@ class DocumentoController extends Controller
                 $rutaArchivo = $archivo->storeAs('public/documentos', $nombreArchivo);
             }
 
-            // === Crear el documento ===
+            // === Crear documento ===
             $documento = Documento::create([
-                'cNroDocumento'   => $request->cNroDocumento,
-                'dFechaDocumento' => $request->dFechaDocumento,
-                'cTipoDocumento'  => $request->cTipoDocumento,
-                'dFechaEntrega'   => $request->dFechaEntrega,
+                'cNroDocumento'     => strtoupper($request->cNroDocumento),
+                'dFechaDocumento'   => $request->dFechaDocumento,
+                'cTipoDocumento'    => $request->cTipoDocumento,
+                'dFechaEntrega'     => $request->dFechaEntrega,
                 'eDocumentoAdjunto' => $rutaArchivo ? str_replace('public/', 'storage/', $rutaArchivo) : null,
             ]);
 
+            // === Registrar relaciones en DOCUMENTO_CARTA ===
             $fechaServidor = Carbon::now()->toDateString();
             $relaciones = collect();
 
-            // === Insertar relaciones sin duplicar ===
             foreach (['documento_carta_memorandum', 'documento_carta_secretaria'] as $tipo) {
                 if ($request->has($tipo)) {
                     foreach ($request->$tipo as $fila) {
                         $idCarta = $fila['IdCartaPresentacion'] ?? null;
                         if ($idCarta && !$relaciones->contains($idCarta)) {
                             DB::table('DOCUMENTO_CARTA')->insert([
-                                'IdDocumento' => $documento->IdDocumento,
+                                'IdDocumento'         => $documento->IdDocumento,
                                 'IdCartaPresentacion' => $idCarta,
-                                'dFechaRegistro' => $fechaServidor,
+                                'dFechaRegistro'      => $fechaServidor,
                             ]);
                             $relaciones->push($idCarta);
                         }
@@ -105,6 +125,7 @@ class DocumentoController extends Controller
 
             DB::commit();
             return redirect()->route('documentos.index')->with('success', '✅ Documento registrado correctamente.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', '❌ Error al registrar documento: ' . $e->getMessage());
@@ -112,58 +133,81 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Formulario de edición
+     * ✏️ Formulario de edición de documento
      */
     public function edit($id)
     {
-        $documento = Documento::with(['cartaPresentacion.estudiante.persona'])->findOrFail($id);
+        $documento = Documento::with(['cartaPresentacion.estudiante.persona', 'cartaPresentacion.supervision'])
+            ->findOrFail($id);
 
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
-            ->where('nConstEstado', '1')
+            ->where('nConstEstado', 1)
             ->orderBy('nConstOrden')
             ->pluck('nConstDescripcion', 'IdConstante');
 
-        $cartas = CartaPresentacion::with(['estudiante.persona'])
-            ->orderByDesc('dFechaRegistro')
-            ->get();
+        // === FILTRO SEGÚN EL TIPO DE DOCUMENTO ===
+        if ($documento->cTipoDocumento == 1) {
+            // ✅ Informe → solo supervisiones finalizadas
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->conSupervisionFinalizada()
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+
+        } elseif ($documento->cTipoDocumento == 2) {
+            // ✅ Memorándum → sin supervisión finalizada
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->sinSupervisionFinalizada()
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+
+        } else {
+            // 🔄 Por defecto: todas
+            $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
+                ->orderByDesc('dFechaRegistro')
+                ->get();
+        }
 
         return view('documentos.edit', compact('documento', 'tiposDocumento', 'cartas'));
     }
 
     /**
-     * Actualizar documento existente
+     * 🔄 Actualizar documento existente
      */
     public function update(Request $request, $id)
     {
         $request->validate([
-            'cNroDocumento'   => 'required|string|max:50',
-            'dFechaDocumento' => 'required|date',
-            'cTipoDocumento'  => 'required|integer',
-            'dFechaEntrega'   => 'nullable|date',
-            'eDocumentoAdjunto' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'cNroDocumento'       => 'required|string|max:50',
+            'dFechaDocumento'     => 'required|date',
+            'cTipoDocumento'      => 'required|integer',
+            'dFechaEntrega'       => 'nullable|date',
+            'eDocumentoAdjunto'   => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
         DB::beginTransaction();
         try {
             $documento = Documento::findOrFail($id);
 
-            // === Actualizar campos ===
-            $documento->cNroDocumento = $request->cNroDocumento;
-            $documento->dFechaDocumento = $request->dFechaDocumento;
-            $documento->cTipoDocumento = $request->cTipoDocumento;
-            $documento->dFechaEntrega = $request->dFechaEntrega;
-
             // === Actualizar archivo si hay uno nuevo ===
             if ($request->hasFile('eDocumentoAdjunto')) {
+                if ($documento->eDocumentoAdjunto && Storage::exists(str_replace('storage/', 'public/', $documento->eDocumentoAdjunto))) {
+                    Storage::delete(str_replace('storage/', 'public/', $documento->eDocumentoAdjunto));
+                }
+
                 $archivo = $request->file('eDocumentoAdjunto');
                 $nombreArchivo = time() . '_' . $archivo->getClientOriginalName();
                 $rutaArchivo = $archivo->storeAs('public/documentos', $nombreArchivo);
                 $documento->eDocumentoAdjunto = str_replace('public/', 'storage/', $rutaArchivo);
             }
 
-            $documento->save();
+            // === Actualizar datos del documento ===
+            $documento->update([
+                'cNroDocumento'   => strtoupper($request->cNroDocumento),
+                'dFechaDocumento' => $request->dFechaDocumento,
+                'cTipoDocumento'  => $request->cTipoDocumento,
+                'dFechaEntrega'   => $request->dFechaEntrega,
+            ]);
 
-            // === Actualizar relaciones ===
+            // === Actualizar relaciones DOCUMENTO_CARTA ===
             DB::table('DOCUMENTO_CARTA')->where('IdDocumento', $documento->IdDocumento)->delete();
 
             $fechaServidor = Carbon::now()->toDateString();
@@ -175,9 +219,9 @@ class DocumentoController extends Controller
                         $idCarta = $fila['IdCartaPresentacion'] ?? null;
                         if ($idCarta && !$relaciones->contains($idCarta)) {
                             DB::table('DOCUMENTO_CARTA')->insert([
-                                'IdDocumento' => $documento->IdDocumento,
+                                'IdDocumento'         => $documento->IdDocumento,
                                 'IdCartaPresentacion' => $idCarta,
-                                'dFechaRegistro' => $fechaServidor,
+                                'dFechaRegistro'      => $fechaServidor,
                             ]);
                             $relaciones->push($idCarta);
                         }
@@ -187,6 +231,7 @@ class DocumentoController extends Controller
 
             DB::commit();
             return redirect()->route('documentos.index')->with('success', '✅ Documento actualizado correctamente.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', '❌ Error al actualizar documento: ' . $e->getMessage());
@@ -194,7 +239,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * Eliminar documento
+     * 🗑️ Eliminar documento
      */
     public function destroy($id)
     {
@@ -202,17 +247,28 @@ class DocumentoController extends Controller
         try {
             $documento = Documento::findOrFail($id);
 
-            // Eliminar relaciones
+            if ($documento->eDocumentoAdjunto && Storage::exists(str_replace('storage/', 'public/', $documento->eDocumentoAdjunto))) {
+                Storage::delete(str_replace('storage/', 'public/', $documento->eDocumentoAdjunto));
+            }
+
             DB::table('DOCUMENTO_CARTA')->where('IdDocumento', $documento->IdDocumento)->delete();
 
-            // Eliminar registro
             $documento->delete();
 
             DB::commit();
             return redirect()->route('documentos.index')->with('success', '🗑️ Documento eliminado correctamente.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', '❌ Error al eliminar documento: ' . $e->getMessage());
         }
     }
 }
+
+
+
+
+
+
+
+

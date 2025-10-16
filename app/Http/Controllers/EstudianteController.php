@@ -170,47 +170,60 @@ class EstudianteController extends Controller
     }
 
     /**
-     * 🔍 Método AJAX para búsqueda de estudiantes (autocompletar) con IdCartaPresentacion.
+     * Método AJAX: busca estudiantes según tipo (supervisados o no)
+     * Parámetro `tipo` = informe | memorandum
      */
     public function buscar(Request $request)
     {
         $query = $request->get('q', '');
+        $tipo = strtolower($request->get('tipo', 'informe'));
 
-        $estudiantes = Estudiante::with([
-                'persona',
-                'programa',
-                'modulo',
-                'cartaPresentacion.empresa'
-            ])
+        $estudiantes = Estudiante::with(['persona', 'programa', 'modulo', 'cartaPresentacion.empresa', 'cartaPresentacion.supervision'])
             ->whereHas('persona', function ($q) use ($query) {
-                $q->where('cDNI', 'like', '%' . $query . '%')
-                  ->orWhere('cNombre', 'like', '%' . $query . '%')
-                  ->orWhere('cApellido', 'like', '%' . $query . '%');
+                $q->where('cDNI', 'like', "%$query%")
+                  ->orWhere('cNombre', 'like', "%$query%")
+                  ->orWhere('cApellido', 'like', "%$query%");
+            })
+            ->when($tipo === 'informe', function ($q) {
+                // Solo estudiantes con supervisión finalizada (nEstado = 1)
+                $q->whereHas('cartaPresentacion.supervision', function ($sub) {
+                    $sub->where('nEstado', 1);
+                });
+            })
+            ->when($tipo === 'memorandum', function ($q) {
+                // Estudiantes sin supervisión o con supervisión no finalizada (nEstado ≠ 1)
+                $q->where(function ($sub) {
+                    $sub->whereDoesntHave('cartaPresentacion.supervision')
+                        ->orWhereHas('cartaPresentacion.supervision', function ($s) {
+                            $s->where('nEstado', '<>', 1);
+                        });
+                });
             })
             ->limit(20)
             ->get()
             ->map(function ($est) {
                 $carta = optional($est->cartaPresentacion);
-
                 return [
-                    'id'                    => $est->IdEstudiante,
-                    'dni'                   => optional($est->persona)->cDNI ?? '',
-                    'nombre'                => trim((optional($est->persona)->cApellido ?? '') . ' ' . (optional($est->persona)->cNombre ?? '')),
-                    'programa'              => optional($est->programa)->nConstDescripcion ?? '',
-                    'modulo'                => optional($est->modulo)->nConstDescripcion ?? '',
-                    'nro_expediente'        => $carta->nNroExpediente ?? '—',
-                    'nro_carta'             => $carta->nNroCarta ?? '—',
-                    'centro_practicas'      => optional($carta->empresa)->cNombreEmpresa ?? '—',
-                    'estado_carta'          => $carta->nEstado ?? 'Pendiente',
-
-                    // 🔑 Importante: IdCartaPresentacion para enviar al registro de documentos
-                    'IdCartaPresentacion'   => $carta->IdCartaPresentacion ?? null,
+                    'id'                  => $est->IdEstudiante,
+                    'dni'                 => optional($est->persona)->cDNI ?? '',
+                    'nombre'              => trim((optional($est->persona)->cApellido ?? '') . ' ' . (optional($est->persona)->cNombre ?? '')),
+                    'programa'            => optional($est->programa)->nConstDescripcion ?? '',
+                    'modulo'              => optional($est->modulo)->nConstDescripcion ?? '',
+                    'nro_expediente'      => $carta->nNroExpediente ?? '—',
+                    'nro_carta'           => $carta->nNroCarta ?? '—',
+                    'centro_practicas'    => optional($carta->empresa)->cNombreEmpresa ?? '—',
+                    'estado_carta'        => $carta->nEstado ?? 'Pendiente',
+                    'IdCartaPresentacion' => $carta->IdCartaPresentacion ?? null,
                 ];
             });
 
         return response()->json($estudiantes);
     }
 }
+
+
+
+
 
 
 
