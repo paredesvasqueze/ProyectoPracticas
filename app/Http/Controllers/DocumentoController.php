@@ -39,12 +39,14 @@ class DocumentoController extends Controller
      */
     public function create(Request $request)
     {
+        // === Tipos de documento disponibles ===
         $tiposDocumento = Constante::where('nConstGrupo', 'TIPO_DOCUMENTO')
             ->where('nConstEstado', 1)
             ->orderBy('nConstOrden')
             ->pluck('nConstDescripcion', 'IdConstante');
 
-        $tipo = $request->input('tipo'); // 'informe' o 'memorandum'
+        // === Normalizamos el tipo de documento (puede venir como INFORME, informe, etc.) ===
+        $tipo = strtolower(trim($request->input('tipo'))); // 🔥 CORRECCIÓN PRINCIPAL
 
         // === FILTRADO SEGÚN EL TIPO ===
         if ($tipo === 'informe') {
@@ -62,7 +64,7 @@ class DocumentoController extends Controller
                 ->get();
 
         } else {
-            // 🔄 Por defecto: mostrar todas las cartas
+            // 🔄 Si no se pasa tipo, mostrar todas las cartas
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->orderByDesc('dFechaRegistro')
                 ->get();
@@ -147,21 +149,18 @@ class DocumentoController extends Controller
 
         // === FILTRO SEGÚN EL TIPO DE DOCUMENTO ===
         if ($documento->cTipoDocumento == 1) {
-            // ✅ Informe → solo supervisiones finalizadas
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->conSupervisionFinalizada()
                 ->orderByDesc('dFechaRegistro')
                 ->get();
 
         } elseif ($documento->cTipoDocumento == 2) {
-            // ✅ Memorándum → sin supervisión finalizada
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->sinSupervisionFinalizada()
                 ->orderByDesc('dFechaRegistro')
                 ->get();
 
         } else {
-            // 🔄 Por defecto: todas
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->orderByDesc('dFechaRegistro')
                 ->get();
@@ -264,6 +263,9 @@ class DocumentoController extends Controller
         }
     }
 }
+
+
+
 
 
 

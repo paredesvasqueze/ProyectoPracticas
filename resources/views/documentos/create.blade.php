@@ -1,3 +1,4 @@
+{{-- resources/views/documentos/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -84,12 +85,12 @@
 
                 <!-- TABLA MEMORÁNDUM (SIN SUPERVISIÓN) -->
                 <div id="tablaMemorandum" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-secondary text-white">
                         <h5 class="mb-0">MEMORÁNDUM A COORDINACIÓN DE PROGRAMA</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
-                            <input type="text" class="form-control me-2 searchInput" id="searchMemorandum"
+                            <input type="text" class="form-control me-2" id="searchMemorandum"
                                    placeholder="Buscar estudiante por DNI o nombre">
                             <button type="button" class="btn btn-primary me-2" id="btnBuscarMemorandum">Buscar</button>
                             <button type="button" class="btn btn-secondary" id="btnLimpiarMemorandum">Limpiar</button>
@@ -114,12 +115,12 @@
 
                 <!-- TABLA INFORME A SECRETARIADO (CON SUPERVISIÓN) -->
                 <div id="tablaSecretaria" class="tabla-dinamica card shadow-sm mt-4" style="display: none;">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">INFORME A SECRETARIADO</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-2 d-flex">
-                            <input type="text" class="form-control me-2 searchInput" id="searchSecretaria"
+                            <input type="text" class="form-control me-2" id="searchSecretaria"
                                    placeholder="Buscar estudiante por DNI o nombre">
                             <button type="button" class="btn btn-primary me-2" id="btnBuscarSecretaria">Buscar</button>
                             <button type="button" class="btn btn-secondary" id="btnLimpiarSecretaria">Limpiar</button>
@@ -169,8 +170,9 @@ $(document).ready(function() {
 
     // === Mostrar tabla según tipo de documento ===
     function mostrarTabla() {
-        let tipo = $('#cTipoDocumento option:selected').text().trim().toLowerCase();
+        const tipo = $('#cTipoDocumento option:selected').text().toLowerCase();
         $('.tabla-dinamica').hide();
+
         if (tipo.includes('memorándum') || tipo.includes('memorandum')) {
             $('#tablaMemorandum').show();
         } else if (tipo.includes('informe') || tipo.includes('secretariado') || tipo.includes('secretaría')) {
@@ -183,38 +185,37 @@ $(document).ready(function() {
 
     // === Comprueba si IdCarta ya está en la tabla indicada ===
     function yaExisteCartaEnTabla(tipo, idCarta, dni, nombre) {
-        if (!idCarta) {
-            // fallback: buscar por dni o nombre en la tabla correspondiente
-            if (tipo === 'memorandum') {
-                return $('#bodyMemorandum tr').filter(function() {
-                    return $(this).find('td').eq(2).text().trim() === nombre || $(this).find('td').eq(3).text().trim() === dni;
-                }).length > 0;
-            } else {
-                return $('#bodySecretaria tr').filter(function() {
-                    return $(this).find('td').eq(3).text().trim() === dni || $(this).find('td').eq(2).text().trim() === nombre;
-                }).length > 0;
-            }
-        } else {
-            // buscar input hidden con ese IdCartaPresentacion dentro del tbody correspondiente
+        if (idCarta) {
             if (tipo === 'memorandum') {
                 return $('#bodyMemorandum').find('input[type="hidden"][value="'+idCarta+'"]').length > 0;
             } else {
                 return $('#bodySecretaria').find('input[type="hidden"][value="'+idCarta+'"]').length > 0;
             }
         }
+
+        if (tipo === 'memorandum') {
+            return $('#bodyMemorandum tr').filter(function() {
+                const nombreCell = $(this).find('td').eq(2).text().trim();
+                return nombreCell === nombre;
+            }).length > 0;
+        } else {
+            return $('#bodySecretaria tr').filter(function() {
+                const nombreCell = $(this).find('td').eq(2).text().trim();
+                return nombreCell === nombre;
+            }).length > 0;
+        }
     }
 
     // === Agregar fila a la tabla ===
     function agregarFila(tipo, data = {}) {
         const idCarta = data.IdCartaPresentacion || '';
-        const nroCarta = data.nro_carta || 'No asignado';
-        const estadoCarta = data.estado_carta || 'No registrado';
         const dni = data.dni || '';
         const nombre = data.nombre || '';
+        const nroCarta = data.nro_carta || '—';
+        const estadoCarta = data.estado_carta || '—';
 
-        // Evitar duplicados usando IdCarta si está; si no, fallback a dni/nombre
         if (yaExisteCartaEnTabla(tipo, idCarta, dni, nombre)) {
-            return; // ya existe, no agregar
+            return;
         }
 
         if (tipo === 'memorandum') {
@@ -222,7 +223,7 @@ $(document).ready(function() {
                 <tr>
                     <td>${data.nro_expediente || ''}</td>
                     <td>${data.programa || ''}</td>
-                    <td>${data.nombre || ''}</td>
+                    <td>${nombre}</td>
                     <td>${data.centro_practicas || ''}</td>
                     <td>${nroCarta}</td>
                     <td>${estadoCarta}</td>
@@ -232,9 +233,7 @@ $(document).ready(function() {
                         <input type="hidden" name="documento_carta_memorandum[${indexMemorandum}][IdCartaPresentacion]" value="${idCarta}">
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm btnEliminar">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `);
@@ -244,7 +243,7 @@ $(document).ready(function() {
                 <tr>
                     <td>${data.nro_expediente || ''}</td>
                     <td>${data.programa || ''}</td>
-                    <td>${data.nombre || ''}</td>
+                    <td>${nombre}</td>
                     <td>${dni}</td>
                     <td>${data.modulo || ''}</td>
                     <td>${nroCarta}</td>
@@ -255,9 +254,7 @@ $(document).ready(function() {
                         <input type="hidden" name="documento_carta_secretaria[${indexSecretaria}][IdCartaPresentacion]" value="${idCarta}">
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm btnEliminar">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button type="button" class="btn btn-danger btn-sm btnEliminar"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `);
@@ -265,16 +262,15 @@ $(document).ready(function() {
         }
     }
 
-    // === Buscar estudiante AJAX ===
+    // === Buscar estudiante AJAX (corregido) ===
     function buscarEstudianteAjax(query, tipo) {
-        if (typeof query !== 'string' || query.trim().length < 2) return;
+        if (!query || query.trim().length < 2) return;
 
         $.ajax({
             url: "{{ route('buscar.estudiante') }}",
             type: "GET",
-            data: { q: query, tipo: tipo }, // enviamos tipo para que backend filtre según memorándum/secretaria
+            data: { q: query, tipo: tipo },
             success: function(respuesta) {
-                // respuesta = array de estudiantes; agregar solo los que no están en la tabla
                 respuesta.forEach(est => agregarFila(tipo, est));
             },
             error: function(err) {
@@ -283,16 +279,15 @@ $(document).ready(function() {
         });
     }
 
-    // === Botones buscar / limpiar ===
+    // === Eventos buscar / limpiar ===
     $('#btnBuscarMemorandum').click(function() {
         buscarEstudianteAjax($('#searchMemorandum').val(), 'memorandum');
     });
 
     $('#btnBuscarSecretaria').click(function() {
-        buscarEstudianteAjax($('#searchSecretaria').val(), 'secretaria');
+        buscarEstudianteAjax($('#searchSecretaria').val(), 'informe');
     });
 
-    // Limpiar solo el campo de búsqueda (no la tabla)
     $('#btnLimpiarMemorandum').click(function() {
         $('#searchMemorandum').val('').focus();
     });
@@ -309,4 +304,7 @@ $(document).ready(function() {
 </script>
 
 @endsection
+
+
+
 

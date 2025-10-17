@@ -170,36 +170,64 @@ class EstudianteController extends Controller
     }
 
     /**
-     * Método AJAX: busca estudiantes según tipo (supervisados o no)
-     * Parámetro `tipo` = informe | memorandum
+     * Método AJAX: busca estudiantes según tipo (informe o memorandum).
+     *
+     * Normaliza varios sinónimos enviados desde el frontend (ej. 'secretaria' => 'informe').
      */
     public function buscar(Request $request)
     {
-        $query = $request->get('q', '');
-        $tipo = strtolower($request->get('tipo', 'informe'));
+        $queryRaw = $request->get('q', '');
+        $tipoRaw = strtolower(trim($request->get('tipo', 'informe')));
 
-        $estudiantes = Estudiante::with(['persona', 'programa', 'modulo', 'cartaPresentacion.empresa', 'cartaPresentacion.supervision'])
-            ->whereHas('persona', function ($q) use ($query) {
-                $q->where('cDNI', 'like', "%$query%")
-                  ->orWhere('cNombre', 'like', "%$query%")
-                  ->orWhere('cApellido', 'like', "%$query%");
+        // Mapeo de sinónimos a tipos canónicos
+        $map = [
+            'informe' => 'informe',
+            'secretaria' => 'informe',
+            'secretariado' => 'informe',
+            'secretaría' => 'informe',
+            'report' => 'informe',
+
+            'memorandum' => 'memorandum',
+            'memorandun' => 'memorandum',
+            'memorando' => 'memorandum',
+            'memo' => 'memorandum',
+            'memorandúm' => 'memorandum',
+        ];
+
+        $tipo = $map[$tipoRaw] ?? $tipoRaw;
+
+        // Según tu script SQL, el valor que representa "supervisado" en CONSTANTE es 1.
+        $estadoSupervisado = 1;
+
+        $estudiantes = Estudiante::with([
+                'persona',
+                'programa',
+                'modulo',
+                'cartaPresentacion.empresa',
+                'cartaPresentacion.supervision'
+            ])
+            ->whereHas('persona', function ($q) use ($queryRaw) {
+                $q->where('cDNI', 'like', "%{$queryRaw}%")
+                  ->orWhere('cNombre', 'like', "%{$queryRaw}%")
+                  ->orWhere('cApellido', 'like', "%{$queryRaw}%");
             })
-            ->when($tipo === 'informe', function ($q) {
-                // Solo estudiantes con supervisión finalizada (nEstado = 1)
-                $q->whereHas('cartaPresentacion.supervision', function ($sub) {
-                    $sub->where('nEstado', 1);
+            // INFORME: solo estudiantes cuya carta tiene supervisión finalizada (nEstado = $estadoSupervisado)
+            ->when($tipo === 'informe', function ($q) use ($estadoSupervisado) {
+                $q->whereHas('cartaPresentacion.supervision', function ($sub) use ($estadoSupervisado) {
+                    $sub->where('nEstado', $estadoSupervisado);
                 });
             })
-            ->when($tipo === 'memorandum', function ($q) {
-                // Estudiantes sin supervisión o con supervisión no finalizada (nEstado ≠ 1)
-                $q->where(function ($sub) {
+            // MEMORANDUM: estudiantes sin supervisión O con supervisión NO finalizada
+            ->when($tipo === 'memorandum', function ($q) use ($estadoSupervisado) {
+                $q->where(function ($sub) use ($estadoSupervisado) {
                     $sub->whereDoesntHave('cartaPresentacion.supervision')
-                        ->orWhereHas('cartaPresentacion.supervision', function ($s) {
-                            $s->where('nEstado', '<>', 1);
+                        ->orWhereHas('cartaPresentacion.supervision', function ($s) use ($estadoSupervisado) {
+                            $s->where('nEstado', '<>', $estadoSupervisado)
+                              ->orWhereNull('nEstado');
                         });
                 });
             })
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(function ($est) {
                 $carta = optional($est->cartaPresentacion);
@@ -214,12 +242,15 @@ class EstudianteController extends Controller
                     'centro_practicas'    => optional($carta->empresa)->cNombreEmpresa ?? '—',
                     'estado_carta'        => $carta->nEstado ?? 'Pendiente',
                     'IdCartaPresentacion' => $carta->IdCartaPresentacion ?? null,
+                    'supervision_estado'  => optional($carta->supervision)->nEstado ?? null,
                 ];
             });
 
         return response()->json($estudiantes);
     }
 }
+
+
 
 
 
