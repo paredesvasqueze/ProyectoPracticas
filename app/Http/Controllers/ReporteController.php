@@ -8,7 +8,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReporteController extends Controller
 {
-    
     /**
      * Mostrar la página principal de reportes (redirige al formulario de filtros)
      */
@@ -62,7 +61,7 @@ class ReporteController extends Controller
 
         $resultados = $this->filtrarDatos($tipo, $request);
 
-        $view = match($tipo) {
+        $view = match ($tipo) {
             'estudiantes' => 'reportes_pdf.estudiantes_pdf',
             'supervisiones' => 'reportes_pdf.supervisiones_pdf',
             'cartas' => 'reportes_pdf.cartas_pdf',
@@ -71,7 +70,11 @@ class ReporteController extends Controller
             default => 'reportes.show',
         };
 
-        $pdf = Pdf::loadView($view, compact('resultados', 'filtros'));
+
+        $orientation = ($tipo === 'supervisiones') ? 'landscape' : 'portrait';
+        $pdf = Pdf::loadView($view, compact('resultados', 'filtros'))
+                  ->setPaper('a4', $orientation);
+
         return $pdf->stream("reporte_{$tipo}.pdf");
     }
 
@@ -83,24 +86,27 @@ class ReporteController extends Controller
         $resultados = collect();
 
         switch ($tipo) {
+            // =====================================================
+            //  REPORTE DE ESTUDIANTES
+            // =====================================================
             case 'estudiantes':
                 $query = DB::table('ESTUDIANTE')
                     ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
                     ->leftJoin('CONSTANTE as prog', fn($join) =>
                         $join->on('ESTUDIANTE.nProgramaEstudios', '=', 'prog.nConstValor')
-                             ->where('prog.nConstGrupo', 'PROGRAMA_ESTUDIO')
+                            ->where('prog.nConstGrupo', 'PROGRAMA_ESTUDIO')
                     )
                     ->leftJoin('CONSTANTE as plan', fn($join) =>
                         $join->on('ESTUDIANTE.nPlanEstudio', '=', 'plan.nConstValor')
-                             ->where('plan.nConstGrupo', 'PLAN_ESTUDIO')
+                            ->where('plan.nConstGrupo', 'PLAN_ESTUDIO')
                     )
                     ->leftJoin('CONSTANTE as mod', fn($join) =>
                         $join->on('ESTUDIANTE.nModuloFormativo', '=', 'mod.nConstValor')
-                             ->where('mod.nConstGrupo', 'MODULO_FORMATIVO')
+                            ->where('mod.nConstGrupo', 'MODULO_FORMATIVO')
                     )
                     ->leftJoin('CONSTANTE as turno', fn($join) =>
                         $join->on('ESTUDIANTE.nTurno', '=', 'turno.nConstValor')
-                             ->where('turno.nConstGrupo', 'TURNO')
+                            ->where('turno.nConstGrupo', 'TURNO')
                     )
                     ->select(
                         'ESTUDIANTE.*',
@@ -135,43 +141,79 @@ class ReporteController extends Controller
                 $resultados = $query->get();
                 break;
 
-            case 'supervisiones':
-                $query = DB::table('SUPERVISION')
-                    ->join('DOCENTE', 'SUPERVISION.IdDocente', '=', 'DOCENTE.IdDocente')
-                    ->join('CARTA_PRESENTACION', 'SUPERVISION.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
-                    ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
-                    ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
-                    ->select(
-                        'SUPERVISION.*',
-                        'DOCENTE.IdPersona as DocenteId',
-                        'PERSONA.cNombre as EstudianteNombre',
-                        'PERSONA.cApellido as EstudianteApellido'
-                    );
+            // =====================================================
+        //  REPORTE DE SUPERVISIONES
+        // =====================================================
+        case 'supervisiones':
+            $query = DB::table('SUPERVISION')
+                ->join('SUPERVISION_DETALLE', 'SUPERVISION.IdSupervision', '=', 'SUPERVISION_DETALLE.IdSupervision')
+                ->join('DOCENTE', 'SUPERVISION.IdDocente', '=', 'DOCENTE.IdDocente')
+                ->join('PERSONA as PDOC', 'DOCENTE.IdPersona', '=', 'PDOC.IdPersona')
+                ->join('CARTA_PRESENTACION', 'SUPERVISION.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
+                ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa')
+                ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
+                ->join('PERSONA as PEST', 'ESTUDIANTE.IdPersona', '=', 'PEST.IdPersona')
+                // 🔹 Joins para obtener nombres legibles de Estado y Oficina
+                ->leftJoin('CONSTANTE as EST', function ($join) {
+                    $join->on('SUPERVISION.nEstado', '=', 'EST.nConstValor')
+                        ->where('EST.nConstGrupo', '=', 'ESTADO_SUPERVISION');
+                })
+                ->leftJoin('CONSTANTE as OFI', function ($join) {
+                    $join->on('SUPERVISION.nOficina', '=', 'OFI.nConstValor')
+                        ->where('OFI.nConstGrupo', '=', 'OFICINA');
+                })
+                ->select(
+                    'SUPERVISION_DETALLE.nNroSupervision',
+                    'SUPERVISION_DETALLE.dFechaSupervision',
+                    'SUPERVISION.nNota',
+                    'SUPERVISION.dFechaInicio',
+                    'SUPERVISION.dFechaFin',
+                    'SUPERVISION.nHoras',
+                    'EST.nConstDescripcion as EstadoDescripcion',
+                    'OFI.nConstDescripcion as OficinaDescripcion',
+                    'PDOC.cNombre as DocenteNombre',
+                    'PDOC.cApellido as DocenteApellido',
+                    'PEST.cNombre as EstudianteNombre',
+                    'PEST.cApellido as EstudianteApellido',
+                    'EMPRESA.cNombreEmpresa as EmpresaNombre',
+                    'EMPRESA.cDireccion as EmpresaDireccion'
+                );
 
-                if ($request->filled('docente')) {
-                    $query->where('DOCENTE.IdPersona', $request->docente);
-                }
-                if ($request->filled('estudiante')) {
-                    $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->estudiante}%");
-                }
-                if ($request->filled('empresa')) {
-                    $query->where('CARTA_PRESENTACION.IdEmpresa', $request->empresa);
-                }
-                if ($request->filled('fecha_inicio')) {
-                    $query->where('SUPERVISION.dFechaInicio', '>=', $request->fecha_inicio);
-                }
-                if ($request->filled('fecha_fin')) {
-                    $query->where('SUPERVISION.dFechaFin', '<=', $request->fecha_fin);
-                }
+            // 🔹 Filtros dinámicos
+            if ($request->filled('docente')) {
+                $query->where(DB::raw("CONCAT(PDOC.cNombre,' ',PDOC.cApellido)"), 'like', "%{$request->docente}%");
+            }
+            if ($request->filled('estudiante')) {
+                $query->where(DB::raw("CONCAT(PEST.cNombre,' ',PEST.cApellido)"), 'like', "%{$request->estudiante}%");
+            }
+            if ($request->filled('empresa')) {
+                $query->where('EMPRESA.cNombreEmpresa', 'like', "%{$request->empresa}%");
+            }
+            if ($request->filled('fecha_inicio')) {
+                $query->where('SUPERVISION_DETALLE.dFechaSupervision', '>=', $request->fecha_inicio);
+            }
+            if ($request->filled('fecha_fin')) {
+                $query->where('SUPERVISION_DETALLE.dFechaSupervision', '<=', $request->fecha_fin);
+            }
 
-                $resultados = $query->get();
-                break;
+            $resultados = $query->get();
+            break;
 
+            // =====================================================
+            //  REPORTE DE CARTAS
+            // =====================================================
             case 'cartas':
                 $query = DB::table('CARTA_PRESENTACION')
                     ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
                     ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
-                    ->select('CARTA_PRESENTACION.*', 'PERSONA.cNombre', 'PERSONA.cApellido');
+                    ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa') // 🔹 unión con empresa
+                    ->select(
+                        'CARTA_PRESENTACION.*',
+                        'PERSONA.cNombre',
+                        'PERSONA.cApellido',
+                        'EMPRESA.cNombreEmpresa',
+                        'EMPRESA.cDireccion'
+                    );
 
                 if ($request->filled('estudiante_carta')) {
                     $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->estudiante_carta}%");
@@ -192,6 +234,9 @@ class ReporteController extends Controller
                 $resultados = $query->get();
                 break;
 
+            // =====================================================
+            //  REPORTE DE EMPRESAS
+            // =====================================================
             case 'empresas':
                 $query = DB::table('EMPRESA')->select('*');
 
@@ -208,6 +253,9 @@ class ReporteController extends Controller
                 $resultados = $query->get();
                 break;
 
+            // =====================================================
+            //  REPORTE DE DOCUMENTOS
+            // =====================================================
             case 'documentos':
                 $query = DB::table('DOCUMENTO')
                     ->join('DOCUMENTO_CARTA', 'DOCUMENTO.IdDocumento', '=', 'DOCUMENTO_CARTA.IdDocumento')
@@ -239,13 +287,5 @@ class ReporteController extends Controller
         return $resultados;
     }
 }
-
-
-
-
-
-
-
-
 
 

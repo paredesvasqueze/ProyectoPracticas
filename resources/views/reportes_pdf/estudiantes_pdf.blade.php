@@ -4,29 +4,112 @@
     <meta charset="UTF-8">
     <title>Reporte de Estudiantes</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
-        h2 { text-align: center; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        th, td { border: 1px solid #333; padding: 5px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .filtros { font-size: 11px; margin-bottom: 10px; }
-        .footer { text-align: center; font-size: 10px; margin-top: 15px; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 12px;
+            margin: 25px;
+            color: #333;
+        }
+
+        /* Encabezado superior */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #99001F;
+        }
+
+        .fecha {
+            font-size: 11px;
+            color: #666;
+        }
+
+        h2 {
+            text-align: center;
+            color: #99001F;
+            border-bottom: 2px solid #99001F;
+            padding-bottom: 5px;
+            margin: 10px 0 15px;
+        }
+
+        .filtros {
+            font-size: 11px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #99001F;
+            padding: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #99001F;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        td:first-child {
+            text-align: center;
+            font-weight: bold;
+            color: #99001F;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 5px;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Encabezado superior -->
+    <div class="header">
+        <div class="logo">Sistema EFSRT</div>
+        <div class="fecha">Fecha: {{ date('d/m/Y') }}</div>
+    </div>
+
     <h2>Reporte de Estudiantes</h2>
 
     {{-- Mostrar filtros aplicados --}}
     @if(!empty($filtros))
         <div class="filtros">
-            <strong>Filtros aplicados:</strong>
+            <strong>Filtros aplicados:</strong><br>
             <span>
-                @if(!empty($filtros['dni'])) DNI: {{ $filtros['dni'] }} @endif
-                @if(!empty($filtros['nombre'])) | Nombre: {{ $filtros['nombre'] }} @endif
-                @if(!empty($filtros['programa'])) | Programa: {{ $filtros['programa_descripcion'] ?? $filtros['programa'] }} @endif
-                @if(!empty($filtros['plan'])) | Plan: {{ $filtros['plan_descripcion'] ?? $filtros['plan'] }} @endif
-                @if(!empty($filtros['modulo'])) | Módulo: {{ $filtros['modulo_descripcion'] ?? $filtros['modulo'] }} @endif
-                @if(!empty($filtros['turno'])) | Turno: {{ $filtros['turno_descripcion'] ?? $filtros['turno'] }} @endif
+                @if(!empty($filtros['dni'])) <strong>DNI:</strong> {{ $filtros['dni'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['nombre'])) <strong>Nombre:</strong> {{ $filtros['nombre'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['programa'])) <strong>Programa:</strong> {{ $filtros['programa_descripcion'] ?? $filtros['programa'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['plan'])) <strong>Plan:</strong> {{ $filtros['plan_descripcion'] ?? $filtros['plan'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['modulo'])) <strong>Módulo:</strong> {{ $filtros['modulo_descripcion'] ?? $filtros['modulo'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['turno'])) <strong>Turno:</strong> {{ $filtros['turno_descripcion'] ?? $filtros['turno'] }} @endif
             </span>
         </div>
     @endif
@@ -34,7 +117,7 @@
     <table>
         <thead>
             <tr>
-                <th>#</th>
+                <th>N°</th>
                 <th>DNI</th>
                 <th>Nombre Completo</th>
                 <th>Programa de Estudios</th>
@@ -58,17 +141,22 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align: center;">No se encontraron resultados para los filtros aplicados.</td>
+                    <td colspan="8" style="text-align: center; padding: 10px;">
+                        No se encontraron resultados para los filtros aplicados.
+                    </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
     <div class="footer">
-        Generado el {{ date('d/m/Y H:i') }}
+        Generado automáticamente el {{ date('d/m/Y H:i') }}
     </div>
+
 </body>
 </html>
+
+
 
 
 

@@ -48,7 +48,6 @@
             <label class="form-label">Filtros de Estudiantes</label>
             <input type="text" name="dni" class="form-control mb-2" placeholder="DNI">
             <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre">
-
             <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="programa" class="form-label">Programa de Estudios</label>
@@ -145,16 +144,17 @@
         </div>
 
         <div class="mt-3">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle me-2"></i> Generar Reporte
-            </button>
-
-            <a href="#" id="btnVistaPrevia" class="btn btn-info ms-2 d-none" target="_blank">
-                <i class="bi bi-eye me-2"></i> Vista Previa PDF
+            {{-- Botón Vista Previa / Descargar PDF --}}
+            <a href="#" id="btnVistaPrevia" class="btn btn-info d-none" target="_blank" role="button">
+                <i class="bi bi-eye me-1"></i>
+                Vista Previa /
+                <i class="bi bi-download mx-1"></i>
+                Descargar PDF
             </a>
 
             <a href="{{ route('reportes.index') }}" class="btn btn-secondary ms-2">Cancelar</a>
         </div>
+
     </form>
 
 </div>
@@ -166,7 +166,6 @@ const tipoSelect = document.getElementById('tipoReporte');
 const filtros = ['Estudiantes','Supervisiones','Cartas','Empresas','Documentos'];
 const btnVistaPrevia = document.getElementById('btnVistaPrevia');
 
-// Actualiza filtros visibles y vista previa al cambiar tipo o cualquier input
 tipoSelect.addEventListener('change', actualizarVistaPrevia);
 document.getElementById('formReporte').addEventListener('input', actualizarVistaPrevia);
 
@@ -185,13 +184,16 @@ function actualizarVistaPrevia() {
     }
 
     if(tipoSelect.value){
+        const params = new URLSearchParams(new FormData(document.getElementById('formReporte'))).toString();
         btnVistaPrevia.classList.remove('d-none');
-        btnVistaPrevia.href = `/reportes/vista-previa/${tipoSelect.value}?${new URLSearchParams(new FormData(document.getElementById('formReporte'))).toString()}`;
+        btnVistaPrevia.href = `/reportes/vista-previa/${tipoSelect.value}?${params}`;
     } else {
         btnVistaPrevia.classList.add('d-none');
     }
 }
 </script>
 @endsection
+
+
 
 
