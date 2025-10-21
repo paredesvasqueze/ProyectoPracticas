@@ -10,6 +10,7 @@ use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\DocumentoCartaController;
+use App\Http\Controllers\ReporteController; 
 
 // ===============================
 // Rutas públicas
@@ -58,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     // Documentos
     Route::resource('documentos', DocumentoController::class);
 
+    // Reportes
+    Route::resource('reportes', ReporteController::class);
+
     // ===============================
     // 🔍 Rutas especiales de búsqueda AJAX
     // ===============================
@@ -69,7 +73,22 @@ Route::middleware(['auth'])->group(function () {
     // Buscar persona asociada al estudiante (para otros formularios, si aplica)
     Route::get('/documentos/buscar-persona', [EstudianteController::class, 'buscarPersona'])
         ->name('documentos.buscar-persona');
+
+    // ===============================
+    // PDF de vista previa de reportes
+    // ===============================
+    Route::get('/reportes/vista-previa/{tipo}', [ReporteController::class, 'vistaPrevia'])
+        ->name('reportes.vista-previa');
+
+    // ===============================
+    // AJAX: Filtrar datos de reportes dinámicamente
+    // ===============================
+    Route::post('/reportes/filtrar', [ReporteController::class, 'filtrarAjax'])
+        ->name('reportes.filtrar');
 });
+
+
+
 
 
 

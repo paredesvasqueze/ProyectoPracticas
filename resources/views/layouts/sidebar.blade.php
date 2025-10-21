@@ -15,7 +15,7 @@
                 <span><i class="bi bi-gear-fill me-2"></i> Mantenedores</span>
                 <i class="bi bi-chevron-down"></i>
             </button>
-            <ul id="mantenedoresMenu" class="nav flex-column ms-3 collapse">
+            <ul id="mantenedoresMenu" class="nav flex-column ms-3 collapse {{ request()->is('usuarios*') || request()->is('empresas*') || request()->is('estudiantes*') || request()->is('docentes*') ? 'show' : '' }}">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('usuarios*') ? 'active' : '' }}" 
                        href="{{ route('usuarios.index') }}">
@@ -51,7 +51,7 @@
                 <span><i class="bi bi-diagram-3-fill me-2"></i> Procesos</span>
                 <i class="bi bi-chevron-down"></i>
             </button>
-            <ul id="procesosMenu" class="nav flex-column ms-3 collapse">
+            <ul id="procesosMenu" class="nav flex-column ms-3 collapse {{ request()->is('cartas*') || request()->is('supervisiones*') ? 'show' : '' }}">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('cartas*') ? 'active' : '' }}" 
                        href="{{ route('cartas.index') }}">
@@ -64,7 +64,6 @@
                         <i class="bi bi-journal-check me-2"></i> Supervisiones
                     </a>
                 </li>
-                
             </ul>
         </div>
 
@@ -76,7 +75,7 @@
                 <span><i class="bi bi-folder-fill me-2"></i> Documentos</span>
                 <i class="bi bi-chevron-down"></i>
             </button>
-            <ul id="documentosMenu" class="nav flex-column ms-3 collapse">
+            <ul id="documentosMenu" class="nav flex-column ms-3 collapse {{ request()->is('documentos*') ? 'show' : '' }}">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('documentos*') ? 'active' : '' }}" 
                        href="{{ route('documentos.index') }}">
@@ -85,5 +84,42 @@
                 </li>
             </ul>
         </div>
+
+        <!-- Sección: Reportes -->
+        <div class="mb-2">
+            <button class="btn w-100 text-start text-white d-flex align-items-center justify-content-between menu-toggle"
+                    style="background-color: transparent; border: none;"
+                    onclick="toggleMenu('reportesMenu', this)">
+                <span><i class="bi bi-file-text-fill me-2"></i> Reportes</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul id="reportesMenu" class="nav flex-column ms-3 collapse {{ request()->is('reportes*') ? 'show' : '' }}">
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('reportes*') ? 'active' : '' }}" 
+                    href="{{ route('reportes.index') }}">
+                        <i class="bi bi-clipboard-data-fill me-2"></i> Reportes Generales
+                    </a>
+                </li>
+            </ul>
+        </div>
+
     </div>
 </div>
+
+<script>
+function toggleMenu(menuId, button) {
+    const menu = document.getElementById(menuId);
+    menu.classList.toggle('show');
+
+    // Cambiar icono de flecha
+    const icon = button.querySelector('i.bi-chevron-down, i.bi-chevron-up');
+    if(icon.classList.contains('bi-chevron-down')){
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    } else {
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    }
+}
+</script>
+
