@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 class DocumentoController extends Controller
 {
     /**
-     * 📄 Mostrar listado de documentos (búsqueda por DNI del estudiante)
+     * Mostrar listado de documentos (búsqueda por DNI del estudiante)
      */
     public function index(Request $request)
     {
@@ -35,7 +35,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * 📝 Formulario de creación de documento
+     * Formulario de creación de documento
      */
     public function create(Request $request)
     {
@@ -50,21 +50,21 @@ class DocumentoController extends Controller
 
         // === FILTRADO SEGÚN EL TIPO ===
         if ($tipo === 'informe') {
-            // ✅ Solo cartas con supervisión finalizada (nEstado = 2)
+            //  Solo cartas con supervisión finalizada (nEstado = 2)
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->conSupervisionFinalizada()
                 ->orderByDesc('dFechaRegistro')
                 ->get();
 
         } elseif ($tipo === 'memorandum') {
-            // ✅ Solo cartas sin supervisión finalizada (sin registro o nEstado != 2)
+            //  Solo cartas sin supervisión finalizada (sin registro o nEstado != 2)
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->sinSupervisionFinalizada()
                 ->orderByDesc('dFechaRegistro')
                 ->get();
 
         } else {
-            // 🔄 Si no se pasa tipo, mostrar todas las cartas
+            //  Si no se pasa tipo, mostrar todas las cartas
             $cartas = CartaPresentacion::with(['estudiante.persona', 'supervision'])
                 ->orderByDesc('dFechaRegistro')
                 ->get();
@@ -74,7 +74,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * 💾 Guardar nuevo documento
+     *  Guardar nuevo documento
      */
     public function store(Request $request)
     {
@@ -135,7 +135,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * ✏️ Formulario de edición de documento
+     *  Formulario de edición de documento
      */
     public function edit($id)
     {
@@ -170,7 +170,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * 🔄 Actualizar documento existente
+     *  Actualizar documento existente
      */
     public function update(Request $request, $id)
     {
@@ -238,7 +238,7 @@ class DocumentoController extends Controller
     }
 
     /**
-     * 🗑️ Eliminar documento
+     *  Eliminar documento
      */
     public function destroy($id)
     {
