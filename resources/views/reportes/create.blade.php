@@ -124,6 +124,8 @@
             <input type="text" name="nombre_empresa" class="form-control mb-2" placeholder="Nombre de la Empresa">
             <input type="text" name="ruc" class="form-control mb-2" placeholder="RUC">
             <input type="text" name="representante" class="form-control mb-2" placeholder="Representante Legal">
+            <input type="text" name="correo" class="form-control mb-2" placeholder="Correo">
+            <input type="text" name="telefono" class="form-control mb-2" placeholder="Teléfono">
         </div>
 
         {{-- Filtros para Documentos --}}
@@ -154,7 +156,6 @@
 
             <a href="{{ route('reportes.index') }}" class="btn btn-secondary ms-2">Cancelar</a>
         </div>
-
     </form>
 
 </div>
@@ -193,6 +194,7 @@ function actualizarVistaPrevia() {
 }
 </script>
 @endsection
+
 
 
 

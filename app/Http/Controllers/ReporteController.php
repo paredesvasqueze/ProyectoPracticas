@@ -154,7 +154,7 @@ class ReporteController extends Controller
                     ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa')
                     ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
                     ->join('PERSONA as PEST', 'ESTUDIANTE.IdPersona', '=', 'PEST.IdPersona')
-                    // Joins para obtener nombres legibles de Estado y Oficina
+                    
                     ->leftJoin('CONSTANTE as EST', function ($join) {
                         $join->on('SUPERVISION.nEstado', '=', 'EST.nConstValor')
                             ->where('EST.nConstGrupo', '=', 'ESTADO_SUPERVISION');
@@ -265,7 +265,7 @@ class ReporteController extends Controller
                         'CARGO.nConstDescripcion as Cargo'
                     );
 
-                // Aplicar filtros si existen
+                
                 if ($request->filled('nombre_empresa')) {
                     $query->where('EMPRESA.cNombreEmpresa', 'like', "%{$request->nombre_empresa}%");
                 }
@@ -286,7 +286,6 @@ class ReporteController extends Controller
                     $query->where('EMPRESA.nTelefono', 'like', "%{$request->telefono}%");
                 }
 
-                // Obtener resultados
                 $resultados = $query->orderBy('EMPRESA.cNombreEmpresa')->get();
                 break;
 
@@ -294,50 +293,48 @@ class ReporteController extends Controller
             //  REPORTE DE DOCUMENTOS
             // =====================================================
             case 'documentos':
-                $query = DB::table('DOCUMENTO')
-                    ->join('DOCUMENTO_CARTA', 'DOCUMENTO.IdDocumento', '=', 'DOCUMENTO_CARTA.IdDocumento')
-                    ->join('CARTA_PRESENTACION', 'DOCUMENTO_CARTA.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
-                    ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
-                    ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
-                    ->leftJoin('SUPERVISION', 'SUPERVISION.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
-                    ->leftJoin('CONSTANTE as ESTADO_SUP', function ($join) {
-                        $join->on('SUPERVISION.nEstado', '=', 'ESTADO_SUP.nConstValor')
-                            ->where('ESTADO_SUP.nConstGrupo', '=', 'ESTADO_SUPERVISION');
-                    })
-                    ->leftJoin('CONSTANTE as TIPO_DOC', function ($join) {
-                        $join->on(DB::raw("CAST(DOCUMENTO.cTipoDocumento AS CHAR) COLLATE utf8mb4_0900_ai_ci"), '=', DB::raw("TIPO_DOC.nConstValor COLLATE utf8mb4_0900_ai_ci"))
-                            ->where('TIPO_DOC.nConstGrupo', '=', 'TIPO_DOCUMENTO');
-                    })
-                    ->select(
-                        'DOCUMENTO.cNroDocumento',
-                        DB::raw("COALESCE(TIPO_DOC.nConstDescripcion, 'Sin Tipo') AS TipoDocumento"),
-                        'DOCUMENTO.dFechaDocumento',
-                        'DOCUMENTO.dFechaEntrega',
-                        DB::raw("CONCAT(PERSONA.cNombre, ' ', PERSONA.cApellido) AS Estudiante"),
-                        'ESTADO_SUP.nConstDescripcion AS EstadoSupervision'
-                    );
+            $query = DB::table('DOCUMENTO')
+                ->join('DOCUMENTO_CARTA', 'DOCUMENTO.IdDocumento', '=', 'DOCUMENTO_CARTA.IdDocumento')
+                ->join('CARTA_PRESENTACION', 'DOCUMENTO_CARTA.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
+                ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
+                ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
+                ->leftJoin('SUPERVISION', 'SUPERVISION.IdCartaPresentacion', '=', 'CARTA_PRESENTACION.IdCartaPresentacion')
+                ->leftJoin('CONSTANTE as ESTADO_SUP', function ($join) {
+                    $join->on('SUPERVISION.nEstado', '=', 'ESTADO_SUP.nConstValor')
+                        ->where('ESTADO_SUP.nConstGrupo', 'ESTADO_SUPERVISION');
+                })
+                ->leftJoin('CONSTANTE as TIPO_DOC', function ($join) {
+                    $join->on('DOCUMENTO.cTipoDocumento', '=', DB::raw('CAST(TIPO_DOC.nConstValor AS UNSIGNED)'))
+                        ->where('TIPO_DOC.nConstGrupo', 'TIPO_DOCUMENTO');
+                })
+                ->select(
+                    'DOCUMENTO.cNroDocumento',
+                    DB::raw("COALESCE(TIPO_DOC.nConstDescripcion, 'Sin Tipo') AS TipoDocumento"),
+                    'DOCUMENTO.dFechaDocumento',
+                    'DOCUMENTO.dFechaEntrega',
+                    DB::raw("CONCAT(PERSONA.cNombre, ' ', PERSONA.cApellido) AS Estudiante"),
+                    'ESTADO_SUP.nConstDescripcion AS EstadoSupervision'
+                );
 
-                // ======================
-                // FILTROS OPCIONALES
-                // ======================
-                if ($request->filled('tipo_documento')) {
-                    $query->where('DOCUMENTO.cTipoDocumento', $request->tipo_documento);
-                }
-                if ($request->filled('estudiante_doc')) {
-                    $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->estudiante_doc}%");
-                }
-                if ($request->filled('carta_doc')) {
-                    $query->where('DOCUMENTO_CARTA.IdCartaPresentacion', $request->carta_doc);
-                }
-                if ($request->filled('fecha_inicio_doc')) {
-                    $query->where('DOCUMENTO.dFechaDocumento', '>=', $request->fecha_inicio_doc);
-                }
-                if ($request->filled('fecha_fin_doc')) {
-                    $query->where('DOCUMENTO.dFechaDocumento', '<=', $request->fecha_fin_doc);
-                }
+            // FILTROS OPCIONALES
+            if ($request->filled('tipo_documento')) {
+                $query->where('DOCUMENTO.cTipoDocumento', $request->tipo_documento);
+            }
+            if ($request->filled('estudiante_doc')) {
+                $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->estudiante_doc}%");
+            }
+            if ($request->filled('carta_doc')) {
+                $query->where('DOCUMENTO_CARTA.IdCartaPresentacion', $request->carta_doc);
+            }
+            if ($request->filled('fecha_inicio_doc')) {
+                $query->where('DOCUMENTO.dFechaDocumento', '>=', $request->fecha_inicio_doc);
+            }
+            if ($request->filled('fecha_fin_doc')) {
+                $query->where('DOCUMENTO.dFechaDocumento', '<=', $request->fecha_fin_doc);
+            }
 
-                $resultados = $query->get();
-                break;
+            $resultados = $query->get();
+            break;
 
         }
 

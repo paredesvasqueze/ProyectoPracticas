@@ -103,7 +103,10 @@
         <div class="filtros">
             <strong>Filtros aplicados:</strong><br>
             <span>
-                @if(!empty($filtros['tipo_documento'])) <strong>Tipo:</strong> {{ $filtros['tipo_documento'] }} &nbsp;&nbsp; @endif
+                @if(!empty($filtros['tipo_documento']))
+                    <strong>Tipo:</strong>
+                    {{ $filtros['tipo_documento_nombre'] ?? $filtros['tipo_documento'] }} &nbsp;&nbsp;
+                @endif
                 @if(!empty($filtros['estudiante_doc'])) <strong>Estudiante:</strong> {{ $filtros['estudiante_doc'] }} &nbsp;&nbsp; @endif
                 @if(!empty($filtros['fecha_inicio_doc'])) <strong>Desde:</strong> {{ $filtros['fecha_inicio_doc'] }} &nbsp;&nbsp; @endif
                 @if(!empty($filtros['fecha_fin_doc'])) <strong>Hasta:</strong> {{ $filtros['fecha_fin_doc'] }} &nbsp;&nbsp; @endif
@@ -128,7 +131,8 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $documento->cNroDocumento ?? '-' }}</td>
-                    <td>{{ $documento->TipoDocumento ?? '-' }}</td>
+                    {{-- 🔹 Usar alias TipoDocumento definido en el query --}}
+                    <td>{{ $documento->TipoDocumento ?? 'Sin Tipo' }}</td>
                     <td>
                         @if(!empty($documento->dFechaDocumento))
                             {{ \Carbon\Carbon::parse($documento->dFechaDocumento)->format('d/m/Y') }}
@@ -143,7 +147,9 @@
                             -
                         @endif
                     </td>
+                    {{-- 🔹 Usar alias Estudiante definido en el query --}}
                     <td>{{ $documento->Estudiante ?? '-' }}</td>
+                    {{-- 🔹 Usar alias EstadoSupervision definido en el query --}}
                     <td>{{ $documento->EstadoSupervision ?? '-' }}</td>
                 </tr>
             @empty
@@ -162,6 +168,9 @@
 
 </body>
 </html>
+
+
+
 
 
 
