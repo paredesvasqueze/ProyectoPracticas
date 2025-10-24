@@ -36,10 +36,10 @@
             <select id="tipoReporte" name="tipo" class="form-select" required>
                 <option value="">-- Seleccionar --</option>
                 <option value="estudiantes">Estudiantes</option>
-                <option value="supervisiones">Supervisiones</option>
-                <option value="cartas">Cartas de Presentación</option>
                 <option value="empresas">Empresas</option>
-                <option value="documentos">Documentos</option>
+                <option value="cartas">Cartas de Presentación</option>
+                <option value="supervisiones">Supervisiones</option>
+                <!--<option value="documentos">Documentos</option>-->
             </select>
         </div>
 
@@ -128,6 +128,7 @@
             <input type="text" name="telefono" class="form-control mb-2" placeholder="Teléfono">
         </div>
 
+        <!--
         {{-- Filtros para Documentos --}}
         <div id="filtrosDocumentos" class="d-none mb-3">
             <label class="form-label">Filtros de Documentos</label>
@@ -144,6 +145,7 @@
                 <input type="date" name="fecha_fin_doc" class="form-control">
             </div>
         </div>
+        -->
 
         <div class="mt-3">
             {{-- Botón Vista Previa / Descargar PDF --}}

@@ -83,10 +83,25 @@
             background-color: #f1f1f1;
         }
 
-        td:first-child {
+        /* Solo el número general de orden en rojo */
+        td.numero-general {
             text-align: center;
             font-weight: bold;
             color: #99001F;
+        }
+
+        /* Número de supervisión centrado y negro */
+        td.numero-supervision {
+            text-align: center;
+            color: #000;
+            font-weight: normal;
+        }
+
+        /* Nombre del alumno normal */
+        .nombre-estudiante {
+            background-color: #fafafa;
+            font-weight: normal;
+            color: #000;
         }
 
         .footer {
@@ -141,28 +156,58 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($resultados as $index => $supervision)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $supervision->DocenteNombre ?? '-' }} {{ $supervision->DocenteApellido ?? '' }}</td>
-                    <td>{{ $supervision->EstudianteNombre ?? '-' }} {{ $supervision->EstudianteApellido ?? '' }}</td>
-                    <td>{{ $supervision->EmpresaNombre ?? '-' }}</td>
-                    <td>{{ $supervision->EmpresaDireccion ?? '-' }}</td>
-                    <td>{{ $supervision->nNroSupervision ?? '-' }}</td>
-                    <td>
-                        {{ !empty($supervision->dFechaSupervision)
-                            ? \Carbon\Carbon::parse($supervision->dFechaSupervision)->format('d/m/Y')
-                            : '-' }}
-                    </td>
-                    <td>{{ $supervision->nNota ?? '-' }}</td>
-                    <td>{{ $supervision->nHoras ?? '-' }}</td>
-                    {{-- Usar descripciones de CONSTANTE --}}
-                    <td>{{ $supervision->EstadoDescripcion ?? '-' }}</td>
-                    <td>{{ $supervision->OficinaDescripcion ?? '-' }}</td>
-                </tr>
+            @php
+                // Agrupar por nombre completo del estudiante
+                $grupoPorEstudiante = $resultados->groupBy(function($item) {
+                    return trim(($item->EstudianteNombre ?? '') . ' ' . ($item->EstudianteApellido ?? ''));
+                });
+                $contador = 1;
+            @endphp
+
+            @forelse($grupoPorEstudiante as $nombreEstudiante => $supervisiones)
+                @php
+                    $rowspan = $supervisiones->count();
+                    $primera = $supervisiones->first();
+                @endphp
+
+                @foreach($supervisiones as $index => $supervision)
+                    <tr>
+                        {{-- Solo en la primera fila del estudiante --}}
+                        @if($index === 0)
+                            <td rowspan="{{ $rowspan }}" class="numero-general">{{ $contador++ }}</td>
+                            <td rowspan="{{ $rowspan }}">
+                                {{ $primera->DocenteNombre ?? '-' }} {{ $primera->DocenteApellido ?? '' }}
+                            </td>
+                            <td rowspan="{{ $rowspan }}" class="nombre-estudiante">
+                                {{ $nombreEstudiante ?: '-' }}
+                            </td>
+                            <td rowspan="{{ $rowspan }}">
+                                {{ $primera->EmpresaNombre ?? '-' }}
+                            </td>
+                            <td rowspan="{{ $rowspan }}">
+                                {{ $primera->EmpresaDireccion ?? '-' }}
+                            </td>
+                        @endif
+
+                        {{-- Estas no se combinan --}}
+                        <td class="numero-supervision">{{ $supervision->nNroSupervision ?? '-' }}</td>
+                        <td>
+                            {{ !empty($supervision->dFechaSupervision)
+                                ? \Carbon\Carbon::parse($supervision->dFechaSupervision)->format('d/m/Y')
+                                : '-' }}
+                        </td>
+
+                        @if($index === 0)
+                            <td rowspan="{{ $rowspan }}">{{ $primera->nNota ?? '-' }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $primera->nHoras ?? '-' }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $primera->EstadoDescripcion ?? '-' }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $primera->OficinaDescripcion ?? '-' }}</td>
+                        @endif
+                    </tr>
+                @endforeach
             @empty
                 <tr>
-                    <td colspan="11" style="text-align: center; padding: 10px;">
+                    <td colspan="11" style="text-align:center; padding:10px;">
                         No se encontraron supervisiones según los filtros aplicados.
                     </td>
                 </tr>
@@ -178,6 +223,8 @@
 
 </body>
 </html>
+
+
 
 
 

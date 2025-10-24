@@ -207,7 +207,7 @@ class ReporteController extends Controller
                 $query = DB::table('CARTA_PRESENTACION')
                     ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
                     ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
-                    ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa') // 🔹 unión con empresa
+                    ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa') 
                     ->select(
                         'CARTA_PRESENTACION.*',
                         'PERSONA.cNombre',
