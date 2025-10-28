@@ -63,7 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('reportes', ReporteController::class);
 
     // ===============================
-    // 🔍 Rutas especiales de búsqueda AJAX
+    // Rutas especiales de búsqueda AJAX
     // ===============================
 
     // Buscar estudiante por DNI o nombre (para autocompletar en memorándum y secretaria)

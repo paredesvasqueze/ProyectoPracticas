@@ -45,8 +45,8 @@ class EstudianteController extends Controller
     }
 
     /**
-     * Guardar nuevo estudiante.
-     */
+    * Guardar nuevo estudiante.
+    */
     public function store(Request $request)
     {
         $request->validate([
@@ -63,13 +63,15 @@ class EstudianteController extends Controller
 
         DB::beginTransaction();
         try {
+            // Crear registro en la tabla PERSONA (sin convertir a mayúsculas)
             $persona = Persona::create([
-                'cNombre'   => strtoupper($request->cNombre),
-                'cApellido' => strtoupper($request->cApellido),
+                'cNombre'   => $request->cNombre, 
+                'cApellido' => $request->cApellido, 
                 'cDNI'      => $request->cDNI,
-                'cCorreo'   => strtolower($request->cCorreo),
+                'cCorreo'   => strtolower($request->cCorreo), 
             ]);
 
+            // Crear registro en la tabla ESTUDIANTE
             Estudiante::create([
                 'IdPersona'         => $persona->IdPersona,
                 'nProgramaEstudios' => $request->nProgramaEstudios,
@@ -80,10 +82,13 @@ class EstudianteController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante registrado correctamente.');
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('success', '✅ Estudiante registrado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', '❌ Error al registrar estudiante: ' . $e->getMessage());
+            return back()
+                ->with('error', '❌ Error al registrar estudiante: ' . $e->getMessage());
         }
     }
 
@@ -123,13 +128,15 @@ class EstudianteController extends Controller
 
         DB::beginTransaction();
         try {
+            // Actualizar datos personales (sin convertir a mayúsculas)
             $estudiante->persona->update([
-                'cNombre'   => strtoupper($request->cNombre),
-                'cApellido' => strtoupper($request->cApellido),
+                'cNombre'   => $request->cNombre, // se guarda tal como lo ingresa el usuario
+                'cApellido' => $request->cApellido, // se guarda tal como lo ingresa el usuario
                 'cDNI'      => $request->cDNI,
-                'cCorreo'   => strtolower($request->cCorreo),
+                'cCorreo'   => strtolower($request->cCorreo), // correo en minúsculas
             ]);
 
+            // Actualizar datos del estudiante
             $estudiante->update([
                 'nProgramaEstudios' => $request->nProgramaEstudios,
                 'nPlanEstudio'      => $request->nPlanEstudio,
@@ -139,10 +146,13 @@ class EstudianteController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('estudiantes.index')->with('success', '✅ Estudiante actualizado correctamente.');
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('success', '✅ Estudiante actualizado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', '❌ Error al actualizar estudiante: ' . $e->getMessage());
+            return back()
+                ->with('error', '❌ Error al actualizar estudiante: ' . $e->getMessage());
         }
     }
 

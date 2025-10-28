@@ -40,7 +40,6 @@
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th>Usuario</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
@@ -53,7 +52,6 @@
                 <tbody>
                     @forelse ($usuarios as $usuario)
                         <tr>
-                            <td>{{ $usuario->IdUsuario }}</td>
                             <td>{{ $usuario->cUsuario }}</td>
                             <td>{{ $usuario->persona->cNombre ?? '' }}</td>
                             <td>{{ $usuario->persona->cApellido ?? '' }}</td>

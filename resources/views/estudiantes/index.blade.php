@@ -44,8 +44,7 @@
         <div class="card-body">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
+                    <tr> 
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>DNI</th>
@@ -61,7 +60,6 @@
                 <tbody>
                     @forelse($estudiantes as $estudiante)
                         <tr>
-                            <td>{{ $estudiante->IdEstudiante }}</td>
                             <td>{{ $estudiante->persona->cNombre ?? '' }}</td>
                             <td>{{ $estudiante->persona->cApellido ?? '' }}</td>
                             <td>{{ $estudiante->persona->cDNI ?? '' }}</td>

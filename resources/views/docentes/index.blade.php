@@ -47,7 +47,6 @@
             <table class="table table-striped table-bordered align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>DNI</th>
@@ -59,7 +58,6 @@
                 <tbody>
                     @forelse ($docentes ?? [] as $docente)
                         <tr>
-                            <td>{{ $docente->IdDocente }}</td>
                             <td>{{ $docente->persona->cNombre ?? '-' }}</td>
                             <td>{{ $docente->persona->cApellido ?? '-' }}</td>
                             <td>{{ $docente->persona->cDNI ?? '-' }}</td>

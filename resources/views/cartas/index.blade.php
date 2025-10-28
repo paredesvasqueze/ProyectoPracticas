@@ -45,7 +45,7 @@
             <table class="table table-striped table-bordered align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <th>N°</th>
                         <th>Estudiante</th>
                         <th>N° Expediente</th>
                         <th>N° Carta</th>

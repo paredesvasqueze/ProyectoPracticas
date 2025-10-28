@@ -39,7 +39,7 @@
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <th>N°</th>
                         <th>Docente</th>
                         <th>Carta</th>
                         <th>Nota</th>
@@ -55,7 +55,9 @@
                 <tbody>
                     @forelse ($supervisiones as $supervision)
                         <tr>
-                            <td>{{ $supervision->IdSupervision }}</td>
+                            <!-- N° consecutivo -->
+                            <td>{{ $loop->iteration }}</td>
+
                             <td>
                                 {{ $supervision->docente->persona->cNombre ?? '' }}
                                 {{ $supervision->docente->persona->cApellido ?? '' }}

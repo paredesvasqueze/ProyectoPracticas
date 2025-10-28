@@ -40,7 +40,6 @@
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th>Tipo</th>
                         <th>Nombre</th>
                         <th>Representante</th>
@@ -56,7 +55,6 @@
                 <tbody>
                     @forelse ($empresas ?? [] as $empresa)
                     <tr>
-                        <td>{{ $empresa->IdEmpresa }}</td>
                         <td>{{ $empresa->tipoEmpresa->nConstDescripcion ?? '-' }}</td>
                         <td>{{ $empresa->cNombreEmpresa }}</td>
                         <td>{{ $empresa->nRepresentanteLegal }}</td>

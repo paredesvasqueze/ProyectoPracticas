@@ -17,7 +17,8 @@ class SupervisionController extends Controller
     {
         $query = Supervision::with([
             'docente.persona',
-            'cartaPresentacion.estudiante.persona'
+            'cartaPresentacion.estudiante.persona',
+            'detalles'
         ]);
 
         // Búsqueda por nombre del docente o número de carta
@@ -34,9 +35,10 @@ class SupervisionController extends Controller
             });
         }
 
+        // Orden correcto: más recientes primero
         $supervisiones = $query->orderByDesc('IdSupervision')->get();
 
-        // Obtener todos los nombres de constantes en una sola consulta (mejor rendimiento)
+        // Obtener nombres legibles de estados y oficinas
         $estados = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')->pluck('nConstDescripcion', 'nConstValor');
         $oficinas = Constante::where('nConstGrupo', 'OFICINA')->pluck('nConstDescripcion', 'nConstValor');
 
@@ -114,7 +116,6 @@ class SupervisionController extends Controller
             'detalles'
         ])->findOrFail($id);
 
-        // Obtener nombres legibles
         $supervision->estado_nombre = Constante::where('nConstGrupo', 'ESTADO_SUPERVISION')
             ->where('nConstValor', (string)$supervision->nEstado)
             ->value('nConstDescripcion') ?? '—';
@@ -174,7 +175,6 @@ class SupervisionController extends Controller
             'IdDocente', 'IdCartaPresentacion', 'nNota', 'dFechaInicio', 'dFechaFin', 'nHoras', 'nEstado', 'nOficina'
         ]));
 
-        // Actualizar detalles (borrar y recrear)
         $supervision->detalles()->delete();
         foreach ($request->detalles as $detalle) {
             $supervision->detalles()->create([
@@ -198,7 +198,4 @@ class SupervisionController extends Controller
         return redirect()->route('supervisiones.index')->with('success', '🗑️ Supervisión eliminada correctamente.');
     }
 }
-
-
-
 

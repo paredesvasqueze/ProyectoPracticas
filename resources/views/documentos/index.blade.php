@@ -40,7 +40,7 @@
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <th>N°</th>
                         <th>Nro Documento</th>
                         <th>Tipo</th>
                         <th>Fecha Documento</th>
