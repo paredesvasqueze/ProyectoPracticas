@@ -87,54 +87,53 @@ class ReporteController extends Controller
         $resultados = collect();
 
         switch ($tipo) {
+        
             // =====================================================
             //  REPORTE DE ESTUDIANTES
             // =====================================================
             case 'estudiantes':
                 $query = DB::table('ESTUDIANTE')
                     ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
-                    ->leftJoin('CONSTANTE as prog', fn($join) =>
-                        $join->on('ESTUDIANTE.nProgramaEstudios', '=', 'prog.nConstValor')
-                            ->where('prog.nConstGrupo', 'PROGRAMA_ESTUDIO')
-                    )
-                    ->leftJoin('CONSTANTE as plan', fn($join) =>
-                        $join->on('ESTUDIANTE.nPlanEstudio', '=', 'plan.nConstValor')
-                            ->where('plan.nConstGrupo', 'PLAN_ESTUDIO')
-                    )
-                    ->leftJoin('CONSTANTE as mod', fn($join) =>
-                        $join->on('ESTUDIANTE.nModuloFormativo', '=', 'mod.nConstValor')
-                            ->where('mod.nConstGrupo', 'MODULO_FORMATIVO')
-                    )
-                    ->leftJoin('CONSTANTE as turno', fn($join) =>
-                        $join->on('ESTUDIANTE.nTurno', '=', 'turno.nConstValor')
-                            ->where('turno.nConstGrupo', 'TURNO')
-                    )
+                    ->leftJoin('CONSTANTE as PROGRAMA', function ($join) {
+                        $join->on('ESTUDIANTE.nProgramaEstudios', '=', 'PROGRAMA.nConstValor');
+                    })
+                    ->leftJoin('CONSTANTE as PLAN', function ($join) {
+                        $join->on('ESTUDIANTE.nPlanEstudio', '=', 'PLAN.nConstValor');
+                    })
+                    ->leftJoin('CONSTANTE as MODULO', function ($join) {
+                        $join->on('ESTUDIANTE.nModuloFormativo', '=', 'MODULO.nConstValor');
+                    })
+                    ->leftJoin('CONSTANTE as TURNO', function ($join) {
+                        $join->on('ESTUDIANTE.nTurno', '=', 'TURNO.nConstValor');
+                    })
+                    ->where('PROGRAMA.nConstGrupo', '=', 'PROGRAMA_ESTUDIO')
+                    ->where('PLAN.nConstGrupo', '=', 'PLAN_ESTUDIO')
+                    ->where('MODULO.nConstGrupo', '=', 'MODULO_FORMATIVO')
+                    ->where('TURNO.nConstGrupo', '=', 'TURNO')
                     ->select(
-                        'ESTUDIANTE.*',
+                        'ESTUDIANTE.IdEstudiante',
                         'PERSONA.cNombre',
                         'PERSONA.cApellido',
                         'PERSONA.cDNI',
-                        'prog.nConstDescripcion as ProgramaDescripcion',
-                        'plan.nConstDescripcion as PlanDescripcion',
-                        'mod.nConstDescripcion as ModuloDescripcion',
-                        'turno.nConstDescripcion as TurnoDescripcion'
+                        'PROGRAMA.nConstDescripcion as ProgramaDescripcion',
+                        'PLAN.nConstDescripcion as PlanDescripcion',
+                        'MODULO.nConstDescripcion as ModuloDescripcion',
+                        'TURNO.nConstDescripcion as TurnoDescripcion'
                     );
 
-                if ($request->filled('dni')) {
-                    $query->where('PERSONA.cDNI', 'like', "%{$request->dni}%");
-                }
-                if ($request->filled('nombre')) {
-                    $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->nombre}%");
-                }
+                // ===== FILTROS =====
                 if ($request->filled('programa')) {
                     $query->where('ESTUDIANTE.nProgramaEstudios', $request->programa);
                 }
+
                 if ($request->filled('plan')) {
                     $query->where('ESTUDIANTE.nPlanEstudio', $request->plan);
                 }
+
                 if ($request->filled('modulo')) {
                     $query->where('ESTUDIANTE.nModuloFormativo', $request->modulo);
                 }
+
                 if ($request->filled('turno')) {
                     $query->where('ESTUDIANTE.nTurno', $request->turno);
                 }

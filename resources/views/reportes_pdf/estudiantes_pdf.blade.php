@@ -22,7 +22,7 @@
         .logo {
             font-size: 18px;
             font-weight: bold;
-            color: #99001F;
+            color: #003366;
         }
 
         .fecha {
@@ -32,8 +32,8 @@
 
         h2 {
             text-align: center;
-            color: #99001F;
-            border-bottom: 2px solid #99001F;
+            color: #003366;
+            border-bottom: 2px solid #003366;
             padding-bottom: 5px;
             margin: 10px 0 15px;
         }
@@ -42,7 +42,7 @@
             font-size: 11px;
             margin-bottom: 15px;
             background-color: #f9f9f9;
-            border-left: 4px solid #99001F;
+            border-left: 4px solid #003366;
             padding: 8px;
         }
 
@@ -59,7 +59,7 @@
         }
 
         th {
-            background-color: #99001F;
+            background-color: #003366;
             color: #fff;
             font-weight: bold;
             text-align: center;
@@ -76,7 +76,7 @@
         td:first-child {
             text-align: center;
             font-weight: bold;
-            color: #99001F;
+            color: #003366;
         }
 
         .footer {

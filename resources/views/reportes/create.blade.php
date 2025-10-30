@@ -45,10 +45,6 @@
         {{-- Filtros para Estudiantes --}}
         <div id="filtrosEstudiantes" class="d-none mb-3">
             <label class="form-label">Filtros de Estudiantes</label>
-            <!--
-            <input type="text" name="dni" class="form-control mb-2" placeholder="DNI">
-            <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre">
-            -->
             <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="programa" class="form-label">Programa de Estudios</label>
