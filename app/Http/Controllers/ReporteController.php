@@ -89,56 +89,65 @@ class ReporteController extends Controller
         switch ($tipo) {
         
             // =====================================================
-            //  REPORTE DE ESTUDIANTES
+            //  REPORTE DE ESTUDIANTES 
             // =====================================================
             case 'estudiantes':
                 $query = DB::table('ESTUDIANTE')
                     ->join('PERSONA', 'ESTUDIANTE.IdPersona', '=', 'PERSONA.IdPersona')
                     ->leftJoin('CONSTANTE as PROGRAMA', function ($join) {
-                        $join->on('ESTUDIANTE.nProgramaEstudios', '=', 'PROGRAMA.nConstValor');
+                        $join->on('ESTUDIANTE.nProgramaEstudios', '=', 'PROGRAMA.nConstValor')
+                            ->where('PROGRAMA.nConstGrupo', '=', 'PROGRAMA_ESTUDIO');
                     })
                     ->leftJoin('CONSTANTE as PLAN', function ($join) {
-                        $join->on('ESTUDIANTE.nPlanEstudio', '=', 'PLAN.nConstValor');
+                        $join->on('ESTUDIANTE.nPlanEstudio', '=', 'PLAN.nConstValor')
+                            ->where('PLAN.nConstGrupo', '=', 'PLAN_ESTUDIO');
                     })
                     ->leftJoin('CONSTANTE as MODULO', function ($join) {
-                        $join->on('ESTUDIANTE.nModuloFormativo', '=', 'MODULO.nConstValor');
+                        $join->on('ESTUDIANTE.nModuloFormativo', '=', 'MODULO.nConstValor')
+                            ->where('MODULO.nConstGrupo', '=', 'MODULO_FORMATIVO');
                     })
                     ->leftJoin('CONSTANTE as TURNO', function ($join) {
-                        $join->on('ESTUDIANTE.nTurno', '=', 'TURNO.nConstValor');
+                        $join->on('ESTUDIANTE.nTurno', '=', 'TURNO.nConstValor')
+                            ->where('TURNO.nConstGrupo', '=', 'TURNO');
                     })
-                    ->where('PROGRAMA.nConstGrupo', '=', 'PROGRAMA_ESTUDIO')
-                    ->where('PLAN.nConstGrupo', '=', 'PLAN_ESTUDIO')
-                    ->where('MODULO.nConstGrupo', '=', 'MODULO_FORMATIVO')
-                    ->where('TURNO.nConstGrupo', '=', 'TURNO')
                     ->select(
                         'ESTUDIANTE.IdEstudiante',
                         'PERSONA.cNombre',
                         'PERSONA.cApellido',
                         'PERSONA.cDNI',
+                        'ESTUDIANTE.nCelular',
                         'PROGRAMA.nConstDescripcion as ProgramaDescripcion',
                         'PLAN.nConstDescripcion as PlanDescripcion',
                         'MODULO.nConstDescripcion as ModuloDescripcion',
                         'TURNO.nConstDescripcion as TurnoDescripcion'
                     );
 
-                // ===== FILTROS =====
-                if ($request->filled('programa')) {
-                    $query->where('ESTUDIANTE.nProgramaEstudios', $request->programa);
+                // ======== FILTROS ACTUALIZADOS ========
+
+                if ($request->filled('estudiante')) {
+                    $query->where(DB::raw("CONCAT(PERSONA.cNombre,' ',PERSONA.cApellido)"), 'like', "%{$request->estudiante}%");
                 }
 
-                if ($request->filled('plan')) {
-                    $query->where('ESTUDIANTE.nPlanEstudio', $request->plan);
+                if ($request->filled('programa_est')) {
+                    $query->where('ESTUDIANTE.nProgramaEstudios', $request->programa_est);
                 }
 
-                if ($request->filled('modulo')) {
-                    $query->where('ESTUDIANTE.nModuloFormativo', $request->modulo);
+                if ($request->filled('plan_est')) {
+                    $query->where('ESTUDIANTE.nPlanEstudio', $request->plan_est);
                 }
 
-                if ($request->filled('turno')) {
-                    $query->where('ESTUDIANTE.nTurno', $request->turno);
+                if ($request->filled('modulo_est')) {
+                    $query->where('ESTUDIANTE.nModuloFormativo', $request->modulo_est);
                 }
 
-                $resultados = $query->get();
+                if ($request->filled('turno_est')) {
+                    $query->where('ESTUDIANTE.nTurno', $request->turno_est);
+                }
+
+                $resultados = $query
+                    ->orderBy('PERSONA.cApellido')
+                    ->orderBy('PERSONA.cNombre')
+                    ->get();
                 break;
 
             // =====================================================
@@ -153,7 +162,6 @@ class ReporteController extends Controller
                     ->join('EMPRESA', 'CARTA_PRESENTACION.IdEmpresa', '=', 'EMPRESA.IdEmpresa')
                     ->join('ESTUDIANTE', 'CARTA_PRESENTACION.IdEstudiante', '=', 'ESTUDIANTE.IdEstudiante')
                     ->join('PERSONA as PEST', 'ESTUDIANTE.IdPersona', '=', 'PEST.IdPersona')
-                    
                     ->leftJoin('CONSTANTE as EST', function ($join) {
                         $join->on('SUPERVISION.nEstado', '=', 'EST.nConstValor')
                             ->where('EST.nConstGrupo', '=', 'ESTADO_SUPERVISION');
@@ -185,29 +193,51 @@ class ReporteController extends Controller
                 if ($request->filled('docente')) {
                     $query->where(DB::raw("CONCAT(PDOC.cNombre,' ',PDOC.cApellido)"), 'like', "%{$request->docente}%");
                 }
+
                 if ($request->filled('estudiante')) {
                     $query->where(DB::raw("CONCAT(PEST.cNombre,' ',PEST.cApellido)"), 'like', "%{$request->estudiante}%");
                 }
+
                 if ($request->filled('empresa')) {
                     $query->where('EMPRESA.cNombreEmpresa', 'like', "%{$request->empresa}%");
                 }
+
                 if ($request->filled('fecha_inicio')) {
                     $query->where('SUPERVISION_DETALLE.dFechaSupervision', '>=', $request->fecha_inicio);
                 }
+
                 if ($request->filled('fecha_fin')) {
                     $query->where('SUPERVISION_DETALLE.dFechaSupervision', '<=', $request->fecha_fin);
                 }
+
                 if ($request->filled('nro_supervision')) {
                     $query->where('SUPERVISION_DETALLE.nNroSupervision', 'like', "%{$request->nro_supervision}%");
                 }
+
                 if ($request->filled('horas')) {
                     $query->where('SUPERVISION.nHoras', '=', $request->horas);
                 }
+
+                $estadoValor = null;
                 if ($request->filled('estado')) {
-                    $query->where('SUPERVISION.nEstado', '=', $request->estado);
+                    $estadoValor = $request->input('estado'); // legacy
+                } elseif ($request->filled('estado_supervision')) {
+                    $estadoValor = $request->input('estado_supervision'); // recomendado
                 }
-                if ($request->filled('oficina')) {
-                    $query->where('SUPERVISION.nOficina', '=', $request->oficina);
+
+                if (!is_null($estadoValor) && $estadoValor !== '') {
+                    $estadoInt = is_numeric($estadoValor) ? (int)$estadoValor : null;
+                    if (!is_null($estadoInt)) {
+                        $query->where('SUPERVISION.nEstado', $estadoInt);
+                    }
+                }
+
+                $oficinaValor = $request->input('oficina', null);
+                if (!is_null($oficinaValor) && $oficinaValor !== '') {
+                    $oficinaInt = is_numeric($oficinaValor) ? (int)$oficinaValor : null;
+                    if (!is_null($oficinaInt)) {
+                        $query->where('SUPERVISION.nOficina', $oficinaInt);
+                    }
                 }
 
                 $resultados = $query->get();

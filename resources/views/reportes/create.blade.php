@@ -44,11 +44,11 @@
 
         {{-- Filtros para Estudiantes --}}
         <div id="filtrosEstudiantes" class="d-none mb-3">
-            <label class="form-label">Filtros de Estudiantes</label>
+            <label class="form-label fw-bold">Filtros de Estudiantes</label>
             <div class="row mb-2">
                 <div class="col-md-4">
-                    <label for="programa" class="form-label">Programa de Estudios</label>
-                    <select name="programa" id="programa" class="form-select">
+                    <label for="programa_est" class="form-label">Programa de Estudios</label>
+                    <select name="programa_est" id="programa_est" class="form-select">
                         <option value="">Todos</option>
                         @foreach($programas as $programa)
                             <option value="{{ $programa->nConstValor }}">{{ $programa->nConstDescripcion }}</option>
@@ -56,8 +56,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="plan" class="form-label">Plan de Estudio</label>
-                    <select name="plan" id="plan" class="form-select">
+                    <label for="plan_est" class="form-label">Plan de Estudio</label>
+                    <select name="plan_est" id="plan_est" class="form-select">
                         <option value="">Todos</option>
                         @foreach($planes as $plan)
                             <option value="{{ $plan->nConstValor }}">{{ $plan->nConstDescripcion }}</option>
@@ -65,8 +65,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="modulo" class="form-label">Módulo Formativo</label>
-                    <select name="modulo" id="modulo" class="form-select">
+                    <label for="modulo_est" class="form-label">Módulo Formativo</label>
+                    <select name="modulo_est" id="modulo_est" class="form-select">
                         <option value="">Todos</option>
                         @foreach($modulos as $modulo)
                             <option value="{{ $modulo->nConstValor }}">{{ $modulo->nConstDescripcion }}</option>
@@ -76,8 +76,8 @@
             </div>
 
             <div class="mb-2">
-                <label for="turno" class="form-label">Turno</label>
-                <select name="turno" id="turno" class="form-select">
+                <label for="turno_est" class="form-label">Turno</label>
+                <select name="turno_est" id="turno_est" class="form-select">
                     <option value="">Todos</option>
                     @foreach($turnos as $turno)
                         <option value="{{ $turno->nConstValor }}">{{ $turno->nConstDescripcion }}</option>
@@ -109,42 +109,41 @@
             </div>
 
             <div class="row">
-            {{-- N° de Supervisión --}}
-            <div id="filtroNroSupervision" class="col-md-6 mb-3">
-                <label for="nro_supervision" class="form-label">N° de Supervisión</label>
-                <input type="text" name="nro_supervision" id="nro_supervision" class="form-control" placeholder="Ingrese el número de supervisión">
-            </div>
+                {{-- N° de Supervisión --}}
+                <div id="filtroNroSupervision" class="col-md-6 mb-3">
+                    <label for="nro_supervision" class="form-label">N° de Supervisión</label>
+                    <input type="text" name="nro_supervision" id="nro_supervision" class="form-control" placeholder="Ingrese el número de supervisión">
+                </div>
 
-            {{-- Horas --}}
-            <div id="filtroHoras" class="col-md-6 mb-3">
-                <label for="horas" class="form-label">Horas</label>
-                <input type="number" name="horas" id="horas" class="form-control" placeholder="Ingrese las horas">
+                {{-- Horas --}}
+                <div id="filtroHoras" class="col-md-6 mb-3">
+                    <label for="horas" class="form-label">Horas</label>
+                    <input type="number" name="horas" id="horas" class="form-control" placeholder="Ingrese las horas">
+                </div>
             </div>
-        </div>
-
 
             <div class="row">
-            {{-- Estado --}}
-            <div id="filtroEstado" class="col-md-6 mb-3">
-                <label for="estado" class="form-label">Estado</label>
-                <select name="estado" id="estado" class="form-select">
+                {{-- Estado --}}
+                <div id="filtroEstado" class="col-md-6 mb-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select name="estado_supervision" id="estado_supervision" class="form-select">
                     <option value="">Todos</option>
                     <option value="1">Supervisado</option>
                     <option value="2">No Supervisado</option>
                 </select>
-            </div>
+                </div>
 
-            {{-- Oficina --}}
-            <div id="filtroOficina" class="col-md-6 mb-3">
-                <label for="oficina" class="form-label">Oficina</label>
-                <select name="oficina" id="oficina" class="form-select">
-                    <option value="">Todos</option>
-                    <option value="1">Coordinación</option>
-                    <option value="2">Secretaría Académica</option>
-                    <option value="3">Jefatura de Unidad Académica</option>
-                </select>
+                {{-- Oficina --}}
+                <div id="filtroOficina" class="col-md-6 mb-3">
+                    <label for="oficina" class="form-label">Oficina</label>
+                    <select name="oficina" id="oficina" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="1">Coordinación</option>
+                        <option value="2">Secretaría Académica</option>
+                        <option value="3">Jefatura de Unidad Académica</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
             <div class="d-flex mb-2">
                 <input type="date" name="fecha_inicio" class="form-control me-2" placeholder="Fecha inicio">
@@ -152,7 +151,7 @@
             </div>
         </div>
 
-        {{-- Filtros para Cartas de Presentación --}}
+        {{-- Filtros para Cartas de Presentación (no se tocan, ya funcionan) --}}
         <div id="filtrosCartas" class="d-none mb-3">
             <label class="form-label fw-bold">Filtros de Cartas de Presentación</label>
 
@@ -199,37 +198,36 @@
             </div>
 
             <div class="row">
-            {{-- Estado --}}
-            <div id="filtroEstado" class="col-md-6 mb-3">
-                <label for="estado" class="form-label">Estado de la Carta</label>
-                <select name="estado" id="estado" class="form-select">
-                    <option value="">Todos</option>
-                    <option value="En proceso">En proceso</option>
-                    <option value="En coordinación">En coordinación</option>
-                    <option value="En jefatura académica">En jefatura académica</option>
-                    <option value="En JUA">En JUA</option>
-                    <option value="Observado">Observado</option>
-                    <option value="Entregado">Entregado</option>
-                </select>
-            </div>
+                {{-- Estado --}}
+                <div id="filtroEstado" class="col-md-6 mb-3">
+                    <label for="estado" class="form-label">Estado de la Carta</label>
+                    <select name="estado" id="estado" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="En proceso">En proceso</option>
+                        <option value="En coordinación">En coordinación</option>
+                        <option value="En jefatura académica">En jefatura académica</option>
+                        <option value="En JUA">En JUA</option>
+                        <option value="Observado">Observado</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
+                </div>
 
-            {{-- Presentó Supervisión --}}
-            <div id="filtroSupervision" class="col-md-6 mb-3">
-                <label for="presento_supervision" class="form-label">¿Presentó Supervisión?</label>
-                <select name="presento_supervision" id="presento_supervision" class="form-select">
-                    <option value="">Todos</option>
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
-                </select>
+                {{-- Presentó Supervisión --}}
+                <div id="filtroSupervision" class="col-md-6 mb-3">
+                    <label for="presento_supervision" class="form-label">¿Presentó Supervisión?</label>
+                    <select name="presento_supervision" id="presento_supervision" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
             {{-- Fechas de Emisión --}}
             <div class="d-flex mb-2">
                 <input type="date" name="fecha_inicio_carta" class="form-control me-2" placeholder="Desde">
                 <input type="date" name="fecha_fin_carta" class="form-control" placeholder="Hasta">
             </div>
-
         </div>
 
         {{-- Filtros para Empresas --}}
