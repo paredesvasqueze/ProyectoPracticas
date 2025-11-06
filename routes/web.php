@@ -11,6 +11,7 @@ use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\DocumentoCartaController;
 use App\Http\Controllers\ReporteController; 
+use App\Http\Controllers\DashboardController;
 
 // ===============================
 // Rutas públicas
@@ -85,6 +86,13 @@ Route::middleware(['auth'])->group(function () {
     // ===============================
     Route::post('/reportes/filtrar', [ReporteController::class, 'filtrarAjax'])
         ->name('reportes.filtrar');
+
+    // ===============================
+    // Alerta Supervisiones
+    // ===============================
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard');
 });
 
 

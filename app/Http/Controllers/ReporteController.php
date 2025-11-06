@@ -171,18 +171,35 @@ class ReporteController extends Controller
                             ->where('OFI.nConstGrupo', '=', 'OFICINA');
                     })
                     ->select(
+                        // CAMPOS PARA AGRUPAR CICLOS
+                        'SUPERVISION.IdSupervision',
+                        'SUPERVISION.IdCartaPresentacion',
+                        'CARTA_PRESENTACION.nNroCarta',
+                        'CARTA_PRESENTACION.nNroExpediente',
+
+                        // DETALLE DE SUPERVISIÓN
                         'SUPERVISION_DETALLE.nNroSupervision',
                         'SUPERVISION_DETALLE.dFechaSupervision',
+
+                        // DATOS GENERALES DE SUPERVISION
                         'SUPERVISION.nNota',
                         'SUPERVISION.dFechaInicio',
                         'SUPERVISION.dFechaFin',
                         'SUPERVISION.nHoras',
+
+                        // CONSTANTES
                         'EST.nConstDescripcion as EstadoDescripcion',
                         'OFI.nConstDescripcion as OficinaDescripcion',
+
+                        // DOCENTE
                         'PDOC.cNombre as DocenteNombre',
                         'PDOC.cApellido as DocenteApellido',
+
+                        // ESTUDIANTE
                         'PEST.cNombre as EstudianteNombre',
                         'PEST.cApellido as EstudianteApellido',
+
+                        // EMPRESA
                         'EMPRESA.cNombreEmpresa as EmpresaNombre',
                         'EMPRESA.cDireccion as EmpresaDireccion'
                     );
@@ -220,9 +237,9 @@ class ReporteController extends Controller
 
                 $estadoValor = null;
                 if ($request->filled('estado')) {
-                    $estadoValor = $request->input('estado'); // legacy
+                    $estadoValor = $request->input('estado');
                 } elseif ($request->filled('estado_supervision')) {
-                    $estadoValor = $request->input('estado_supervision'); // recomendado
+                    $estadoValor = $request->input('estado_supervision');
                 }
 
                 if (!is_null($estadoValor) && $estadoValor !== '') {

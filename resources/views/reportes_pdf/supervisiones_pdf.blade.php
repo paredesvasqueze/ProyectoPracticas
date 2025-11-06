@@ -83,24 +83,19 @@
             background-color: #f1f1f1;
         }
 
-        /* Solo el número general de orden en rojo */
         td.numero-general {
             text-align: center;
             font-weight: bold;
             color: #003366;
         }
 
-        /* Número de supervisión centrado y negro */
         td.numero-supervision {
             text-align: center;
             color: #000;
-            font-weight: normal;
         }
 
-        /* Nombre del alumno normal */
         .nombre-estudiante {
             background-color: #fafafa;
-            font-weight: normal;
             color: #000;
         }
 
@@ -147,6 +142,7 @@
                 <th>Estudiante</th>
                 <th>Empresa</th>
                 <th>Dirección Empresa</th>
+                <th>N° Carta</th> {{-- ✅ NUEVO --}}
                 <th>N° Supervisión</th>
                 <th>Fecha Supervisión</th>
                 <th>Nota</th>
@@ -155,59 +151,90 @@
                 <th>Oficina</th>
             </tr>
         </thead>
+
         <tbody>
+
             @php
-                // Agrupar por nombre completo del estudiante
-                $grupoPorEstudiante = $resultados->groupBy(function($item) {
-                    return trim(($item->EstudianteNombre ?? '') . ' ' . ($item->EstudianteApellido ?? ''));
-                });
                 $contador = 1;
+                $lastGrupo = null;
+                $grupos = [];
+                $tempGrupo = [];
+
+                foreach ($resultados as $key => $r) {
+
+                    // ✅ AGRUPACIÓN REAL POR CARTA + CICLO
+                    $grupoActual = ($r->IdCartaPresentacion ?? '') . '|' .
+                                   ($r->IdSupervision ?? '') . '|' .
+                                   ($r->DocenteNombre ?? '') . '|' .
+                                   ($r->DocenteApellido ?? '') . '|' .
+                                   ($r->EstudianteNombre ?? '') . '|' .
+                                   ($r->EstudianteApellido ?? '') . '|' .
+                                   ($r->EmpresaNombre ?? '') . '|' .
+                                   ($r->EmpresaDireccion ?? '') . '|' .
+                                   ($r->EstadoDescripcion ?? '') . '|' .
+                                   ($r->OficinaDescripcion ?? '');
+
+                    if ($lastGrupo === $grupoActual || $lastGrupo === null) {
+                        $tempGrupo[] = $r;
+                    } else {
+                        $grupos[] = $tempGrupo;
+                        $tempGrupo = [$r];
+                    }
+
+                    $lastGrupo = $grupoActual;
+
+                    if ($key === $resultados->count() - 1) {
+                        $grupos[] = $tempGrupo;
+                    }
+                }
             @endphp
 
-            @forelse($grupoPorEstudiante as $nombreEstudiante => $supervisiones)
-                @php
-                    $rowspan = $supervisiones->count();
-                    $primera = $supervisiones->first();
-                @endphp
+            @forelse($grupos as $grupo)
+                @php $rowspan = count($grupo); @endphp
 
-                @foreach($supervisiones as $index => $supervision)
+                @foreach($grupo as $index => $supervision)
                     <tr>
-                        {{-- Solo en la primera fila del estudiante --}}
                         @if($index === 0)
                             <td rowspan="{{ $rowspan }}" class="numero-general">{{ $contador++ }}</td>
+
                             <td rowspan="{{ $rowspan }}">
-                                {{ $primera->DocenteNombre ?? '-' }} {{ $primera->DocenteApellido ?? '' }}
+                                {{ $supervision->DocenteNombre }} {{ $supervision->DocenteApellido }}
                             </td>
+
                             <td rowspan="{{ $rowspan }}" class="nombre-estudiante">
-                                {{ $nombreEstudiante ?: '-' }}
+                                {{ $supervision->EstudianteNombre }} {{ $supervision->EstudianteApellido }}
                             </td>
+
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->EmpresaNombre }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->EmpresaDireccion }}</td>
+
+                            {{-- ✅ MOSTRAR NÚMERO DE CARTA --}}
                             <td rowspan="{{ $rowspan }}">
-                                {{ $primera->EmpresaNombre ?? '-' }}
-                            </td>
-                            <td rowspan="{{ $rowspan }}">
-                                {{ $primera->EmpresaDireccion ?? '-' }}
+                                {{ $supervision->nNroCarta ?? '-' }}
                             </td>
                         @endif
 
-                        {{-- Estas no se combinan --}}
-                        <td class="numero-supervision">{{ $supervision->nNroSupervision ?? '-' }}</td>
+                        {{-- No combinados --}}
+                        <td class="numero-supervision">{{ $supervision->nNroSupervision }}</td>
+
                         <td>
-                            {{ !empty($supervision->dFechaSupervision)
+                            {{ $supervision->dFechaSupervision
                                 ? \Carbon\Carbon::parse($supervision->dFechaSupervision)->format('d/m/Y')
                                 : '-' }}
                         </td>
 
                         @if($index === 0)
-                            <td rowspan="{{ $rowspan }}">{{ $primera->nNota ?? '-' }}</td>
-                            <td rowspan="{{ $rowspan }}">{{ $primera->nHoras ?? '-' }}</td>
-                            <td rowspan="{{ $rowspan }}">{{ $primera->EstadoDescripcion ?? '-' }}</td>
-                            <td rowspan="{{ $rowspan }}">{{ $primera->OficinaDescripcion ?? '-' }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->nNota }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->nHoras }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->EstadoDescripcion }}</td>
+                            <td rowspan="{{ $rowspan }}">{{ $supervision->OficinaDescripcion }}</td>
                         @endif
                     </tr>
                 @endforeach
+
             @empty
                 <tr>
-                    <td colspan="11" style="text-align:center; padding:10px;">
+                    <td colspan="12" style="text-align:center; padding:10px;">
                         No se encontraron supervisiones según los filtros aplicados.
                     </td>
                 </tr>
@@ -223,6 +250,7 @@
 
 </body>
 </html>
+
 
 
 
